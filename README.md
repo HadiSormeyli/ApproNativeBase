@@ -2,6 +2,82 @@
 
 A reusable Android base library for applications built with Kotlin and Jetpack Compose. The project combines application configuration, dependency injection, theming, localization, session persistence, networking, OTP authentication, subscription products, Bazaar/Myket payments, navigation helpers, and reusable Compose UI components in one library module.
 
+## Publishing
+
+The uploaded project is not yet configured for Maven or JitPack publishing.
+
+Before publishing:
+
+1. Rename the module from `app` to `base` or `library`.
+2. Add `maven-publish`.
+3. Define a stable group, artifact, and version.
+4. Publish the Android release component.
+5. Add consumer ProGuard rules when necessary.
+6. Add a license.
+7. Tag releases using semantic versioning.
+
+After JitPack configuration, the expected dependency format would be:
+
+```kotlin
+implementation("com.github.HadiSormeyli:ApproNativeBase:v1.0")
+```
+Do not publish coordinates in documentation until the actual repository owner, artifact name, and release tag are finalized.
+
+## Initialize the library
+
+Add this to your build.gradle(:app)
+
+```kotlin
+android {
+    flavorDimensions += "store"
+
+    productFlavors {
+        create("bazaar") {
+            dimension = "store"
+            buildConfigField("String", "FLAVOR_NAME", "\"BAZAAR\"")
+            buildConfigField("String", "PAYMENT_RSA_KEY", "\"YOUR_BAZAAR_RSA_KEY\"")
+        }
+
+        create("myket") {
+            dimension = "store"
+            buildConfigField("String", "FLAVOR_NAME", "\"MYKET\"")
+            buildConfigField("String", "PAYMENT_RSA_KEY", "\"YOUR_MYKET_RSA_KEY\"")
+        }
+
+        create("googlePlay") {
+            dimension = "store"
+            buildConfigField("String", "STORE_FLAVOR", "\"GOOGLE_PLAY\"")
+            buildConfigField("String", "PAYMENT_RSA_KEY", "\"\"")
+        }
+    }
+}
+```
+
+Initialize the base library once from the host `Application` class before resolving library dependencies.
+
+```kotlin
+class App : Application() {
+    override fun onCreate() {
+        super.onCreate()
+
+        BaseInitializer.init(
+            application = this,
+            config = BaseConfig(
+                applicationPackage = BuildConfig.APPLICATION_ID,
+                flavor = Flavor.fromString(BuildConfig.FLAVOR_NAME),
+                storeLink = "link to your project on markets",
+                paymentRsaKey = BuildConfig.PAYMENT_RSA_KEY,
+                appVersionName = BuildConfig.VERSION_NAME,
+                appVersionCode = BuildConfig.VERSION_CODE,
+                isStoreAvailable = true,
+                debug = BuildConfig.DEBUG
+            ),
+            appModules = listOf(appModule)
+        )
+    }
+}
+```
+
 > **Project status:** pre-release. The uploaded project contains the main architecture and feature set, but the items in [Pre-release checklist](#pre-release-checklist) should be resolved before production publishing.
 
 ## Contents
@@ -162,34 +238,6 @@ The library performs network operations and checks whether supported stores are 
 ```
 
 The OTP implementation uses the SMS User Consent API and does not require direct SMS-reading permission.
-
-## Initialize the library
-
-Initialize the base library once from the host `Application` class before resolving library dependencies.
-
-```kotlin
-class App : Application() {
-    override fun onCreate() {
-        super.onCreate()
-
-        BaseInitializer.init(
-            application = this,
-            config = BaseConfig(
-                applicationPackage = BuildConfig.APPLICATION_ID,
-                flavor = Flavor.BAZAAR,
-                storeLink = "market://details?id=${BuildConfig.APPLICATION_ID}",
-                paymentRsaKey = BuildConfig.PAYMENT_RSA_KEY,
-                appVersionName = BuildConfig.VERSION_NAME,
-                appVersionCode = BuildConfig.VERSION_CODE,
-                paymentGateway = Flavor.BAZAAR.gateway,
-                isStoreAvailable = true,
-                debug = BuildConfig.DEBUG
-            ),
-            appModules = listOf(appModule)
-        )
-    }
-}
-```
 
 Register the application in the manifest:
 
@@ -1142,28 +1190,6 @@ The current project contains only the generated example unit and instrumented te
 - Bottom-navigation route matching
 - Drawer selected/disabled states
 - Subscription sheet state transitions
-
-## Publishing
-
-The uploaded project is not yet configured for Maven or JitPack publishing.
-
-Before publishing:
-
-1. Rename the module from `app` to `base` or `library`.
-2. Add `maven-publish`.
-3. Define a stable group, artifact, and version.
-4. Publish the Android release component.
-5. Add consumer ProGuard rules when necessary.
-6. Add a license.
-7. Tag releases using semantic versioning.
-
-After JitPack configuration, the expected dependency format would be:
-
-```kotlin
-implementation("com.github.<owner>:<repository>:<tag>")
-```
-
-Do not publish coordinates in documentation until the actual repository owner, artifact name, and release tag are finalized.
 
 ## License
 

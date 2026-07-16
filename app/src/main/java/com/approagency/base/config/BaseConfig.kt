@@ -21,7 +21,6 @@ data class BaseConfig(
     val paymentRsaKey: String,
     val appVersionName: String,
     val appVersionCode: Int,
-    val paymentGateway: String,
     val isStoreAvailable: Boolean = true,
     val defaultLocale: Locale = Locale.forLanguageTag("fa-IR"),
     val lightColorSchema: ColorScheme = createLightColorScheme(Color(0xFF6750A4)),

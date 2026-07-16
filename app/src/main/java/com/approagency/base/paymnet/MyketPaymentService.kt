@@ -86,7 +86,7 @@ class MyketPaymentService(
                     productId = request.productId,
                     body = mapOf(
                         "purchase_token" to token,
-                        "gateway" to config.paymentGateway
+                        "gateway" to config.flavor.gateway
                     )
                 )
 

@@ -7,7 +7,7 @@ enum class Flavor(
     BAZAAR(
         englishLabel = "Bazaar",
         persianLabel = "بازار",
-        gateway = "bazar"
+        gateway = "cafe"
     ),
     MYKET(
         englishLabel = "Myket",
