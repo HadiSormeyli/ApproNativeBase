@@ -2,26 +2,10 @@
 
 A reusable Android base library for applications built with Kotlin and Jetpack Compose. The project combines application configuration, dependency injection, theming, localization, session persistence, networking, OTP authentication, subscription products, Bazaar/Myket payments, navigation helpers, and reusable Compose UI components in one library module.
 
-## Publishing
-
-The uploaded project is not yet configured for Maven or JitPack publishing.
-
-Before publishing:
-
-1. Rename the module from `app` to `base` or `library`.
-2. Add `maven-publish`.
-3. Define a stable group, artifact, and version.
-4. Publish the Android release component.
-5. Add consumer ProGuard rules when necessary.
-6. Add a license.
-7. Tag releases using semantic versioning.
-
-After JitPack configuration, the expected dependency format would be:
-
+## Implementation
 ```kotlin
 implementation("com.github.HadiSormeyli:ApproNativeBase:v1.0")
 ```
-Do not publish coordinates in documentation until the actual repository owner, artifact name, and release tag are finalized.
 
 ## Initialize the library
 
