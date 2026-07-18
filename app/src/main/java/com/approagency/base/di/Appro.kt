@@ -2,6 +2,7 @@ package com.approagency.base.di
 
 import android.app.Application
 import com.approagency.base.config.ApproConfig
+import com.approagency.base.local.preference.PreferencesHelper
 import com.approagency.base.model.ui.deepLink.DeepLinkParser
 import com.approagency.base.utils.DeepLinkManager
 import org.koin.android.ext.koin.androidContext
@@ -28,6 +29,11 @@ object Appro {
         }
 
         return startKoin {
+            PreferencesHelper.init(
+                context = application,
+                applicationPackageName = config.packageName
+            )
+
             androidContext(application)
 
             modules(
