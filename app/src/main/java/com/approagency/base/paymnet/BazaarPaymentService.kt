@@ -1,7 +1,7 @@
 package com.approagency.base.paymnet
 
 import androidx.activity.ComponentActivity
-import com.approagency.base.config.BaseConfig
+import com.approagency.base.config.ApproConfig
 import com.approagency.base.local.room.dao.SessionDao
 import com.approagency.base.model.network.Failure
 import com.approagency.base.model.network.Resource
@@ -19,7 +19,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resumeWithException
 
 class BazaarPaymentService(
-    private val config: BaseConfig,
+    private val config: ApproConfig,
     private val sessionDao: SessionDao,
     private val approService: ApproService,
     private val marketPackageName: String = "com.farsitel.bazaar"
@@ -30,7 +30,7 @@ class BazaarPaymentService(
         request: PaymentRequest
     ): Flow<Resource<String>> {
         return networkCall {
-            if (config.isStoreAvailable) {
+            if (config.isPaymentAvailable) {
                 throw Failure.StoreUnavailable
             }
 
@@ -43,7 +43,7 @@ class BazaarPaymentService(
 
             val approToken = session.approToken
             val phoneNumber = session.phoneNumber
-            val versionCode = config.appVersionCode
+            val versionCode = config.versionCode
             val payload = request.payload ?: "$phoneNumber|$versionCode"
 
             val payment = Payment(
@@ -76,7 +76,7 @@ class BazaarPaymentService(
                 }
 
                 val response = approService.subscribeProduct(
-                    packageName = config.applicationPackage,
+                    packageName = config.packageName,
                     productId = request.productId,
                     body = mapOf(
                         "purchase_token" to token,

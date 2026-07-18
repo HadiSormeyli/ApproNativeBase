@@ -1,7 +1,7 @@
 package com.approagency.base.paymnet
 
 import androidx.activity.ComponentActivity
-import com.approagency.base.config.BaseConfig
+import com.approagency.base.config.ApproConfig
 import com.approagency.base.local.room.dao.SessionDao
 import com.approagency.base.model.network.Failure
 import com.approagency.base.model.network.Resource
@@ -9,7 +9,7 @@ import com.approagency.base.network.service.ApproService
 import kotlinx.coroutines.flow.Flow
 
 class GooglePlayPaymentService(
-    private val config: BaseConfig,
+    private val config: ApproConfig,
     private val sessionDao: SessionDao,
     private val approService: ApproService,
     private val marketPackageName: String = "com.android.vending"

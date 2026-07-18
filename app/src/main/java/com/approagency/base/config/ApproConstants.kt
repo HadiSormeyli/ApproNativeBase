@@ -14,4 +14,15 @@ object ApproConstants {
     const val WRITE_TIMEOUT = 240L
 
     const val SHIMMER_ANIMATION_DURATION = 300
+
+    const val FIREBASE_TITLE = "title"
+    const val FIREBASE_DESCRIPTION = "description"
+    const val FIREBASE_BODY = "body"
+    const val FIREBASE_IMAGE = "image"
+    const val FIREBASE_IMAGE_URL = "image_url"
+    const val FIREBASE_LINK = "link"
+    const val FIREBASE_ID = "id"
+
+    const val LINK = "link"
+    const val DATA = "data"
 }

@@ -27,7 +27,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
-import com.approagency.base.config.BaseConfig
+import com.approagency.base.config.ApproConfig
 import com.approagency.base.local.preference.PreferencesHelper
 import com.approagency.base.model.UiText
 import com.approagency.base.model.ui.ApproSnackBarVisuals
@@ -35,6 +35,7 @@ import com.approagency.base.model.ui.SnackBarType
 import com.approagency.base.session.SessionManager
 import com.approagency.base.theme.ApproTheme
 import com.approagency.base.theme.ThemeManager
+import com.approagency.base.utils.DeepLinkManager
 import com.approagency.base.utils.OtpAutoFillBus
 import com.approagency.base.utils.OtpAutofillController
 import com.google.android.gms.auth.api.phone.SmsRetriever
@@ -49,8 +50,6 @@ import org.koin.compose.koinInject
 import java.util.Locale
 
 abstract class BaseActivity : ComponentActivity(), OtpAutofillController {
-    private var isIntentHandled = false
-
     lateinit var snackBarHostState: SnackbarHostState
 
     protected lateinit var composeScope: CoroutineScope
@@ -74,7 +73,8 @@ abstract class BaseActivity : ComponentActivity(), OtpAutofillController {
 
     val sessionManager: SessionManager by inject()
     val themeManager: ThemeManager by inject()
-    val config: BaseConfig by inject()
+    val config: ApproConfig by inject()
+    val deepLinkManager: DeepLinkManager by inject()
 
     var language: String = config.defaultLocale.language
 
@@ -103,7 +103,6 @@ abstract class BaseActivity : ComponentActivity(), OtpAutofillController {
         installSplashScreen()
 
         super.onCreate(savedInstanceState)
-        isIntentHandled = savedInstanceState?.getBoolean(INTENT_FLAG_KEY, false) == true
         snackBarHostState = SnackbarHostState()
         enableEdgeToEdge()
         setContent {
@@ -122,10 +121,8 @@ abstract class BaseActivity : ComponentActivity(), OtpAutofillController {
                 }
             }
         }
-    }
 
-    fun setHandleIntent(value: Boolean) {
-        isIntentHandled = value
+        deepLinkManager.handle(intent)
     }
 
     private fun updateLocale(context: Context, locale: Locale): Context {
@@ -135,12 +132,11 @@ abstract class BaseActivity : ComponentActivity(), OtpAutofillController {
         return context.createConfigurationContext(configuration)
     }
 
-    fun isIntentHandled(): Boolean {
-        if (!isIntentHandled) {
-            isIntentHandled = true
-            return false
-        }
-        return true
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+
+        setIntent(intent)
+        deepLinkManager.handle(intent)
     }
 
     fun showSnackBar(

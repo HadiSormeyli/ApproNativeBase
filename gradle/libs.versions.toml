@@ -17,6 +17,8 @@ navigationCompose = "2.9.8"
 coil = "2.7.0"
 poolakey = "2.2.0"
 myketBilling = "1.19"
+firebaseBom = "34.16.0"
+googleServices = "4.5.0"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -48,6 +50,8 @@ koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 poolakey = { module = "com.github.cafebazaar.Poolakey:poolakey", version.ref = "poolakey" }
 myket-billing = { module = "com.github.myketstore:myket-billing-client", version.ref = "myketBilling" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "agp" }
@@ -55,3 +59,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 androidx-room = { id = "androidx.room", version.ref = "room" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }

@@ -49,4 +49,10 @@ interface ApproService {
         @Path("productId") productId: Int,
         @Body body: Map<String, String>
     ): Response<ResponseBody>
+
+    @POST("profile/")
+    suspend fun sendFCMToken(
+        @Query("fcm_token") fcmToken: String,
+        @Query("package_name") packageName: String,
+    ): ResponseBody
 }

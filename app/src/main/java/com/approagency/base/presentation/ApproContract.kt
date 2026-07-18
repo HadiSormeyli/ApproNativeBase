@@ -29,6 +29,7 @@ class ApproContract {
 
         data object ResetLoginState : Event()
         data object ResetPurchaseState : Event()
+        data class SendFCMToken(val token: String) : Event()
     }
 
     data class State(

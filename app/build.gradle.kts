@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -81,4 +82,6 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.poolakey)
     implementation(libs.myket.billing)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 }

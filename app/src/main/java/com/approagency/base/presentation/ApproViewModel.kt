@@ -2,7 +2,7 @@ package com.approagency.base.presentation
 
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.viewModelScope
-import com.approagency.base.config.BaseConfig
+import com.approagency.base.config.ApproConfig
 import com.approagency.base.model.UiState
 import com.approagency.base.model.network.Failure
 import com.approagency.base.model.network.Resource
@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 class ApproViewModel(
     private val repository: ApproRepository,
     private val sessionManager: SessionManager,
-    private val config: BaseConfig,
+    private val config: ApproConfig,
     private val paymentService: PaymentService
 ) : BaseViewModel<ApproContract.Event, ApproContract.State, ApproContract.SideEffect>(
 ) {
@@ -57,10 +57,19 @@ class ApproViewModel(
                     )
                 }
             }
+
+            is ApproContract.Event.SendFCMToken -> sendFCMToken(event.token)
         }
     }
 
-    fun purchase(
+
+    private fun sendFCMToken(token: String) {
+        viewModelScope.launch {
+            repository.sendFCMToken(token, config.packageName).collectLatest { }
+        }
+    }
+
+    private fun purchase(
         activity: ComponentActivity,
         paymentRequest: PaymentRequest
     ) {
@@ -82,7 +91,7 @@ class ApproViewModel(
         }
     }
 
-    fun resetPurchaseState() {
+    private fun resetPurchaseState() {
         setState {
             copy(
                 purchaseState = UiState.Idle()
@@ -90,11 +99,11 @@ class ApproViewModel(
         }
     }
 
-    fun loginUser(
+    private fun loginUser(
         phoneNumber: String
     ) {
         viewModelScope.launch {
-            repository.login(mobile = phoneNumber, packageName = config.applicationPackage)
+            repository.login(mobile = phoneNumber, packageName = config.packageName)
                 .collectLatest {
                     setState {
                         copy(
@@ -107,7 +116,7 @@ class ApproViewModel(
         }
     }
 
-    fun checkOtp(
+    private fun checkOtp(
         phoneNumber: String,
         otp: String,
         sessionId: String,
@@ -161,7 +170,7 @@ class ApproViewModel(
         }
     }
 
-    fun resetAuthStates() {
+    private fun resetAuthStates() {
         setState {
             copy(
                 step = AuthStep.Phone,
@@ -173,9 +182,9 @@ class ApproViewModel(
         }
     }
 
-    fun getProducts() {
+    private fun getProducts() {
         viewModelScope.launch {
-            repository.getProducts(config.applicationPackage).collectLatest {
+            repository.getProducts(config.packageName).collectLatest {
                 setState {
                     copy(
                         productsState = it.toUiState()
@@ -185,7 +194,7 @@ class ApproViewModel(
         }
     }
 
-    fun checkStatus() {
+    private fun checkStatus() {
         viewModelScope.launch {
             val session = sessionManager.getSession()
 
@@ -194,7 +203,7 @@ class ApproViewModel(
                 && session.approToken?.isNotEmpty() == true
                 && session.accessToken?.isNotEmpty() == true
             ) {
-                repository.getStatus(config.applicationPackage).collectLatest {
+                repository.getStatus(config.packageName).collectLatest {
                     when (it) {
                         is Resource.Error -> {
                             if (it.error.code == Failure.Unauthorized.code || it.error.code == Failure.Forbidden.code) {

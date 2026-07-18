@@ -14,8 +14,11 @@ import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLink
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.approagency.base.model.ui.deepLink.DeepLinkNavigationType
+import com.approagency.base.model.ui.deepLink.DeepLinkTarget
 import com.approagency.base.theme.LocalBaseActivity
 import org.koin.androidx.compose.koinViewModel
 
@@ -119,5 +122,37 @@ fun <T : Any> NavController.navigateAndClean(route: T, startDeputation: T) {
     navigate(route = route) {
         popUpTo(startDeputation) { inclusive = true }
         launchSingleTop = true
+    }
+}
+
+fun NavController.navigateDeepLink(
+    target: DeepLinkTarget
+) {
+    when (target.navigationType) {
+        DeepLinkNavigationType.PUSH -> {
+            navigate(target.route)
+        }
+
+        DeepLinkNavigationType.SINGLE_TOP -> {
+            navigate(target.route) {
+                popUpTo(target.route) {
+                    inclusive = false
+                }
+
+                launchSingleTop = true
+            }
+        }
+
+        DeepLinkNavigationType.CLEAR_STACK -> {
+            navigate(target.route) {
+                popUpTo(
+                    graph.findStartDestination().id
+                ) {
+                    inclusive = true
+                }
+
+                launchSingleTop = true
+            }
+        }
     }
 }

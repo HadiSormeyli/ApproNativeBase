@@ -5,7 +5,7 @@ import com.approagency.base.config.ApproConstants
 import com.approagency.base.config.ApproConstants.CONNECT_TIMEOUT
 import com.approagency.base.config.ApproConstants.READ_TIMEOUT
 import com.approagency.base.config.ApproConstants.WRITE_TIMEOUT
-import com.approagency.base.config.BaseConfig
+import com.approagency.base.config.ApproConfig
 import com.approagency.base.model.network.Failure
 import com.approagency.base.model.network.Resource
 import com.approagency.base.network.dto.ErrorDto
@@ -95,7 +95,7 @@ fun createRetrofit(
 }
 
 fun createPublicOkHttpClient(
-    config: BaseConfig = get().get(),
+    config: ApproConfig = get().get(),
     httpLoggingInterceptor: HttpLoggingInterceptor = get().get(),
     interceptors: List<Interceptor> = emptyList()
 ): OkHttpClient {
@@ -116,7 +116,7 @@ fun createPublicOkHttpClient(
 }
 
 fun createPrivateOkHttpClient(
-    config: BaseConfig = get().get(),
+    config: ApproConfig = get().get(),
     approTokenInterceptor: ApproTokenInterceptor = get().get(),
     httpLoggingInterceptor: HttpLoggingInterceptor = get().get(),
     interceptors: List<Interceptor> = emptyList()

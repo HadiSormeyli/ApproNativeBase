@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.approagency.base.config.BaseConfig
+import com.approagency.base.config.ApproConfig
 import com.approagency.base.model.ui.ShimmerColors
 import com.approagency.base.utils.shimmerLoadingAnimation
 import org.koin.compose.koinInject
@@ -93,7 +93,7 @@ fun ShimmerIconButton(
 fun defaultShimmerColors(): ShimmerColors {
     val color = MaterialTheme.colorScheme.surfaceVariant
 
-    return koinInject<BaseConfig>().shimmerColors ?: ShimmerColors(
+    return koinInject<ApproConfig>().shimmerColors ?: ShimmerColors(
         image = listOf(
             color.copy(alpha = 0.3f),
             color.copy(alpha = 0.5f),

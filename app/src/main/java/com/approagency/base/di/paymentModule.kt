@@ -1,6 +1,6 @@
 package com.approagency.base.di
 
-import com.approagency.base.config.BaseConfig
+import com.approagency.base.config.ApproConfig
 import com.approagency.base.config.Flavor
 import com.approagency.base.paymnet.BazaarPaymentService
 import com.approagency.base.paymnet.GooglePlayPaymentService
@@ -10,7 +10,7 @@ import org.koin.dsl.module
 
 val paymentModule = module {
     single<PaymentService> {
-        val config = get<BaseConfig>()
+        val config = get<ApproConfig>()
 
         when (config.flavor) {
             Flavor.BAZAAR -> BazaarPaymentService(

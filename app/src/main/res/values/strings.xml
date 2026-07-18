@@ -52,4 +52,5 @@
     <string name="retry">تلاش مجدد</string>
     <string name="pass_guide">رد کردن</string>
     <string name="error_store_unavailable">درگاه در دسترس نیست.</string>
+    <string name="error_open_link">برنامه ای برای باز کردن این لینک وجود ندارد.</string>
 </resources>

@@ -1,6 +1,6 @@
 package com.approagency.base.network.repository
 
-import com.approagency.base.config.BaseConfig
+import com.approagency.base.config.ApproConfig
 import com.approagency.base.model.Promotion
 import com.approagency.base.model.network.Resource
 import com.approagency.base.model.user.Product
@@ -11,7 +11,7 @@ import com.approagency.base.network.service.ApproService
 import kotlinx.coroutines.flow.Flow
 
 class ApproRepository(
-    private val config: BaseConfig,
+    private val config: ApproConfig,
     private val service: ApproService
 ) {
     fun getPromotions(): Flow<Resource<List<Promotion>>> {
@@ -22,7 +22,7 @@ class ApproRepository(
 
     fun login(
         mobile: String,
-        packageName: String = config.applicationPackage
+        packageName: String = config.packageName
     ): Flow<Resource<Unit>> {
         return networkCall {
             service.login(
@@ -45,7 +45,7 @@ class ApproRepository(
     }
 
     fun getStatus(
-        packageName: String = config.applicationPackage
+        packageName: String = config.packageName
     ): Flow<Resource<UserStatus>> {
         return networkCall {
             service.getStatus(
@@ -55,7 +55,7 @@ class ApproRepository(
     }
 
     fun getProducts(
-        packageName: String = config.applicationPackage
+        packageName: String = config.packageName
     ): Flow<Resource<List<Product>>> {
         return networkCall {
             service.getProducts(
@@ -65,7 +65,7 @@ class ApproRepository(
     }
 
     fun subscribeProduct(
-        packageName: String = config.applicationPackage,
+        packageName: String = config.packageName,
         productId: Int,
         body: Map<String, String>
     ): Flow<Resource<Boolean>> {
@@ -75,6 +75,19 @@ class ApproRepository(
                 productId,
                 body
             ).isSuccessful
+        }
+    }
+
+    fun sendFCMToken(
+        token: String,
+        packageName: String = config.packageName
+    ): Flow<Resource<Unit>> {
+        return networkCall {
+            service.sendFCMToken(
+                token,
+                packageName
+            )
+            Unit
         }
     }
 }
