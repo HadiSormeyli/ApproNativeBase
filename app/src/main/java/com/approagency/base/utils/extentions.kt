@@ -17,6 +17,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -55,6 +56,7 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 import kotlin.coroutines.resumeWithException
+import kotlin.math.abs
 
 fun OkHttpClient.Builder.addSLLFactory(): OkHttpClient.Builder {
     val trustAllCerts = arrayOf<TrustManager>(
@@ -338,4 +340,10 @@ fun BaseActivity.openLink(link: Uri) {
     } catch (_: Exception) {
         showSnackBar(UiText.StringResource(R.string.error_open_link))
     }
+}
+
+fun PagerState.pageOffset(page: Int): Float {
+    return abs(
+        currentPage - page + currentPageOffsetFraction
+    ).coerceIn(0f, 1f)
 }
