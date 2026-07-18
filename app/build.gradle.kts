@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.google.services)
+    id("maven-publish")
 }
 
 android {
@@ -36,6 +36,12 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
     }
 }
 
@@ -84,4 +90,26 @@ dependencies {
     implementation(libs.myket.billing)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+}
+
+afterEvaluate {
+    extensions.configure<PublishingExtension> {
+        publications {
+            create<MavenPublication>("release") {
+                from(project.components["release"])
+
+                groupId =
+                    System.getenv("GROUP")
+                        ?: "com.github.HadiSormeyli"
+
+                artifactId =
+                    System.getenv("ARTIFACT")
+                        ?: "ApproNativeBase"
+
+                version =
+                    System.getenv("VERSION")
+                        ?: "local"
+            }
+        }
+    }
 }

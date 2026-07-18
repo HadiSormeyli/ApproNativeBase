@@ -243,23 +243,23 @@ data class ApproConfig(
 
 Important properties:
 
-| Property | Purpose |
-|---|---|
-| `packageName` | Package sent to Appro APIs and used for local storage names |
-| `flavor` | Selects Bazaar, Myket, or Google Play payment |
-| `storeLink` | Application page in the selected market |
-| `deepLinkSchemes` | Schemes treated as internal application links |
-| `mainDeepLinkScheme` | Scheme used when creating new links |
-| `paymentRsaKey` | Bazaar or Myket RSA public key |
-| `isPaymentAvailable` | Enables or disables payment |
-| `versionName` / `versionCode` | Host application version |
-| `defaultLocale` | Initial application locale |
-| `lightColorSchema` / `darkColorSchema` | Material 3 color schemes |
-| `typography` / `shapes` | Material theme configuration |
-| `shimmerColors` | Optional custom shimmer colors |
-| `defaultThemeMode` | `SYSTEM`, `LIGHT`, or `DARK` |
-| `providers` | Custom CompositionLocal providers |
-| `extra` | Application-specific values |
+| Property                               | Purpose                                                     |
+|----------------------------------------|-------------------------------------------------------------|
+| `packageName`                          | Package sent to Appro APIs and used for local storage names |
+| `flavor`                               | Selects Bazaar, Myket, or Google Play payment               |
+| `storeLink`                            | Application page in the selected market                     |
+| `deepLinks`                            | application deep links                                      |
+| `deepLink`                             | main application deep link                                  |
+| `paymentRsaKey`                        | Bazaar or Myket RSA public key                              |
+| `isPaymentAvailable`                   | Enables or disables payment                                 |
+| `versionName` / `versionCode`          | Host application version                                    |
+| `defaultLocale`                        | Initial application locale                                  |
+| `lightColorSchema` / `darkColorSchema` | Material 3 color schemes                                    |
+| `typography` / `shapes`                | Material theme configuration                                |
+| `shimmerColors`                        | Optional custom shimmer colors                              |
+| `defaultThemeMode`                     | `SYSTEM`, `LIGHT`, or `DARK`                                |
+| `providers`                            | Custom CompositionLocal providers                           |
+| `extra`                                | Application-specific values                                 |
 
 ## Host application manifest
 
@@ -764,8 +764,8 @@ val approConfig = ApproConfig(
     packageName = BuildConfig.APPLICATION_ID,
     flavor = Flavor.fromString(BuildConfig.FLAVOR_NAME),
     storeLink = "YOUR_STORE_LINK",
-    deepLinkSchemes = listOf("myapp"),
-    mainDeepLinkScheme = "myapp",
+    deepLinks = listOf("deep link"),
+    deepLink = "deep link",
     paymentRsaKey = BuildConfig.PAYMENT_RSA_KEY,
     versionName = BuildConfig.VERSION_NAME,
     versionCode = BuildConfig.VERSION_CODE
@@ -871,7 +871,7 @@ fun AppContent(
 }
 ```
 
-Internal schemes listed in `ApproConfig.deepLinkSchemes` are routed through the app parser. Other schemes are opened externally.
+Deep links listed in `ApproConfig.deepLinks` are routed through the app parser. Other schemes are opened externally.
 
 ### Create a deep link
 

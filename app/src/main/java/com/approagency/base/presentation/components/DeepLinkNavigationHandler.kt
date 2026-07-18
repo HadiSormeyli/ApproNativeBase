@@ -24,9 +24,7 @@ fun DeepLinkNavigationHandler(
         deepLinkManager
     ) {
         deepLinkManager.events.collectLatest { event ->
-            if (
-                config.isInternalLink(event.input.uri)
-            ) {
+            if (config.isInternalLink(event.input.uri)) {
                 navController.navigateDeepLink(event.target)
             } else {
                 activity.openLink(event.input.uri)
