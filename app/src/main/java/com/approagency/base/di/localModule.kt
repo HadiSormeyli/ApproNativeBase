@@ -7,12 +7,12 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val localModule = module {
-    single {
+    single<ApproDatabase> {
         Room.databaseBuilder(
             androidContext(),
             ApproDatabase::class.java,
             "${get<ApproConfig>().packageName}.base.db}"
-        )
+        ).build()
     }
 
     single {
