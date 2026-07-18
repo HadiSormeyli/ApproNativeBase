@@ -29,9 +29,9 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import com.approagency.base.config.ApproConfig
 import com.approagency.base.local.preference.PreferencesHelper
-import com.approagency.base.model.UiText
 import com.approagency.base.model.ui.ApproSnackBarVisuals
 import com.approagency.base.model.ui.SnackBarType
+import com.approagency.base.model.ui.UiText
 import com.approagency.base.session.SessionManager
 import com.approagency.base.theme.ApproTheme
 import com.approagency.base.theme.ThemeManager
@@ -228,7 +228,13 @@ abstract class BaseActivity : ComponentActivity(), OtpAutofillController {
         )
     }
 
+    override fun stopOtpAutofill() {
+        otpSmsReceiver?.let { runCatching { unregisterReceiver(it) } }
+        otpSmsReceiver = null
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        stopOtpAutofill()
     }
 }

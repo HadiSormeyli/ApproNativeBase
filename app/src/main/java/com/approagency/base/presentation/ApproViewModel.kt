@@ -3,7 +3,7 @@ package com.approagency.base.presentation
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.viewModelScope
 import com.approagency.base.config.ApproConfig
-import com.approagency.base.model.UiState
+import com.approagency.base.model.ui.UiState
 import com.approagency.base.model.network.Failure
 import com.approagency.base.model.network.Resource
 import com.approagency.base.model.session.Session

@@ -1,7 +1,7 @@
 package com.approagency.base.presentation
 
 import androidx.activity.ComponentActivity
-import com.approagency.base.model.UiState
+import com.approagency.base.model.ui.UiState
 import com.approagency.base.model.session.Session
 import com.approagency.base.model.ui.AuthStep
 import com.approagency.base.model.user.Product

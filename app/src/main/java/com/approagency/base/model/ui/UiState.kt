@@ -1,4 +1,4 @@
-package com.approagency.base.model
+package com.approagency.base.model.ui
 
 import com.approagency.base.model.network.Failure
 

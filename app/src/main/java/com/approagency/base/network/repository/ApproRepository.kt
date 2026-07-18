@@ -1,7 +1,7 @@
 package com.approagency.base.network.repository
 
 import com.approagency.base.config.ApproConfig
-import com.approagency.base.model.Promotion
+import com.approagency.base.model.ui.Promotion
 import com.approagency.base.model.network.Resource
 import com.approagency.base.model.user.Product
 import com.approagency.base.model.user.UserResponse

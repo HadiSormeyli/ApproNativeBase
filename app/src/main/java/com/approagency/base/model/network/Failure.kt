@@ -1,7 +1,7 @@
 package com.approagency.base.model.network
 
 import com.approagency.base.R
-import com.approagency.base.model.UiText
+import com.approagency.base.model.ui.UiText
 
 data class Failure(
     val code: Int,

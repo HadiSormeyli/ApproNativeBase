@@ -22,7 +22,7 @@ Add the library to `build.gradle.kts (:app)`:
 
 ```kotlin
 dependencies {
-    implementation("com.github.HadiSormeyli:ApproNativeBase:v1.0.0")
+    implementation("com.github.HadiSormeyli:ApproNativeBase:v1.0.2")
 }
 ```
 
@@ -221,7 +221,7 @@ class App : Application() {
 data class ApproConfig(
     val packageName: String,
     val flavor: Flavor,
-    val storeLink: String,
+    val storeLink: String? = null,
     val deepLinkScheme: String = "",
     val deepLinkSchemes: List<String> = listOf(deepLinkScheme),
     val paymentRsaKey: String,

@@ -1,6 +1,6 @@
 package com.approagency.base.network.service
 
-import com.approagency.base.model.Promotion
+import com.approagency.base.model.ui.Promotion
 import com.approagency.base.model.user.Product
 import com.approagency.base.model.user.UserResponse
 import com.approagency.base.model.user.UserStatus

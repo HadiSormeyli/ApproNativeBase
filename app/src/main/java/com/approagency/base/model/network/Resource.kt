@@ -1,6 +1,6 @@
 package com.approagency.base.model.network
 
-import com.approagency.base.model.UiState
+import com.approagency.base.model.ui.UiState
 
 sealed class Resource<out T> {
     class Success<T>(val data: T) : Resource<T>()

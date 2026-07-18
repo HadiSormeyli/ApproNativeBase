@@ -41,7 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.approagency.base.model.UiState
+import com.approagency.base.model.ui.UiState
 import com.approagency.base.model.session.Session
 import com.approagency.base.model.ui.AuthStep
 import com.approagency.base.model.ui.SubscriptionBottomSheetText

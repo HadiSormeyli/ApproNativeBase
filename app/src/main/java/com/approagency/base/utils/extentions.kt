@@ -36,7 +36,7 @@ import androidx.core.net.toUri
 import com.approagency.base.R
 import com.approagency.base.config.ApproConstants
 import com.approagency.base.firebase.FirebaseMessage
-import com.approagency.base.model.UiText
+import com.approagency.base.model.ui.UiText
 import com.approagency.base.model.ui.Icon
 import com.approagency.base.model.ui.Label
 import com.approagency.base.model.ui.deepLink.DeepLinkInput

@@ -27,7 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.approagency.base.R
-import com.approagency.base.model.UiText
+import com.approagency.base.model.ui.UiText
 import com.approagency.base.model.network.Failure
 
 @Composable

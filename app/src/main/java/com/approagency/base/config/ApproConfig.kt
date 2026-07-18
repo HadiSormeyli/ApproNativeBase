@@ -19,19 +19,19 @@ import java.util.Locale
 data class ApproConfig(
     val packageName: String,
     val flavor: Flavor,
-    val storeLink: String,
-    val deepLink: String = "",
-    val deepLinks: List<String> = listOf(deepLink),
     val paymentRsaKey: String,
-    val isPaymentAvailable: Boolean = paymentRsaKey.isNotEmpty(),
     val versionName: String,
     val versionCode: Int,
+    val debug: Boolean,
+    val storeLink: String? = null,
+    val deepLink: String = "",
+    val deepLinks: List<String> = listOf(deepLink),
+    val isPaymentAvailable: Boolean = paymentRsaKey.isNotEmpty(),
     val defaultLocale: Locale = Locale.forLanguageTag("fa-IR"),
     val lightColorSchema: ColorScheme = createLightColorScheme(Color(0xFF6750A4)),
     val darkColorSchema: ColorScheme = createDarkColorScheme(Color(0xFFD0BCFF)),
     val typography: Typography = ApproTypography,
     val shapes: Shapes = ApproShapes,
-    val debug: Boolean = false,
     val shimmerColors: ShimmerColors? = null,
     val defaultThemeMode: ThemeMode = ThemeMode.SYSTEM,
     val providers: @Composable (isDarkMode: Boolean) -> Array<ProvidedValue<*>> = { emptyArray() },
@@ -56,4 +56,8 @@ data class ApproConfig(
                                 )
             }
     }
+
+    fun isMyket() = flavor == Flavor.MYKET
+    fun isBazaar() = flavor == Flavor.BAZAAR
+    fun isGooglePlay() = flavor == Flavor.GOOGLE_PLAY
 }
