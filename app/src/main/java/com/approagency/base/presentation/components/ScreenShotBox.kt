@@ -23,7 +23,7 @@ import com.approagency.base.R
 import com.approagency.base.model.ui.UiText
 import com.approagency.base.presentation.BaseActivity
 import com.approagency.base.theme.LocalBaseActivity
-import com.approagency.base.utils.Utils
+import com.approagency.base.utils.ApproUtils
 import kotlinx.coroutines.launch
 
 @Composable
@@ -39,7 +39,7 @@ fun ScreenShotBox(
     onSaved: (Bitmap) -> Unit = {},
     onError: (Throwable) -> Unit = {},
     saveBitmap: suspend (BaseActivity, Bitmap, String) -> Unit = { activity, bitmap, fileName ->
-        Utils.saveBitmapToGallery(activity, bitmap, fileName)
+        ApproUtils.saveBitmapToGallery(activity, bitmap, fileName)
     },
     content: @Composable BoxScope.(
         onScreenShotClicked: () -> Unit

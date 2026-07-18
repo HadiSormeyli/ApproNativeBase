@@ -4,6 +4,7 @@ import com.approagency.base.config.ApproConstants
 import com.approagency.base.network.createPrivateOkHttpClient
 import com.approagency.base.network.createPublicOkHttpClient
 import com.approagency.base.network.createRetrofit
+import com.approagency.base.network.interceptor.ApproTokenInterceptor
 import com.approagency.base.network.repository.ApproRepository
 import com.approagency.base.network.service.ApproService
 import com.approagency.base.utils.createWebService
@@ -23,6 +24,10 @@ val networkModule = module {
             .apply {
                 level = HttpLoggingInterceptor.Level.BODY
             }
+    }
+
+    single {
+        ApproTokenInterceptor(sessionManager = get())
     }
 
     single(named(ApproConstants.APPRO_PUBLIC_OKHTTP)) {

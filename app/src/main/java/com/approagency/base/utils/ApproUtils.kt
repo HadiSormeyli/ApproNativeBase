@@ -17,7 +17,7 @@ import com.approagency.base.presentation.BaseActivity
 import java.io.File
 import java.io.FileOutputStream
 
-object Utils {
+object ApproUtils {
 
     fun getBitmapFromUri(context: Context, uri: Uri): Bitmap? {
         return try {
