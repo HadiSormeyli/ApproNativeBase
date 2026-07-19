@@ -70,19 +70,27 @@ fun CustomOutlinedTextField(
     labelStyle: TextStyle = MaterialTheme.typography.bodyMedium,
     supportingTextStyle: TextStyle = MaterialTheme.typography.bodySmall,
     colors: TextFieldColors = OutlinedTextFieldDefaults.colors(
-        focusedLabelColor = MaterialTheme.colorScheme.primary,
+        focusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
         unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
         focusedBorderColor = MaterialTheme.colorScheme.primary,
-        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-        focusedContainerColor = MaterialTheme.colorScheme.surface,
-        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+        unfocusedBorderColor = if (value.isEmpty()) Color.Transparent else MaterialTheme.colorScheme.outline,
+
+        focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = if (value.isEmpty()) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+
         disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+
         errorBorderColor = MaterialTheme.colorScheme.error,
+
         errorLabelColor = MaterialTheme.colorScheme.error,
-        errorCursorColor = MaterialTheme.colorScheme.error,
+
         errorSupportingTextColor = MaterialTheme.colorScheme.error,
+
+        errorCursorColor = MaterialTheme.colorScheme.error,
         cursorColor = MaterialTheme.colorScheme.primary
     ),
     imeAction: ImeAction = ImeAction.Done,
@@ -192,8 +200,6 @@ fun OtpTextField(
     textStyle: TextStyle = MaterialTheme.typography.titleLarge,
     focusedBorderColor: Color = MaterialTheme.colorScheme.primary,
     unfocusedBorderColor: Color = MaterialTheme.colorScheme.outline,
-    focusedContainerColor: Color = MaterialTheme.colorScheme.surface,
-    unfocusedContainerColor: Color = MaterialTheme.colorScheme.surface,
     focusedTextColor: Color = MaterialTheme.colorScheme.onSurface,
     unfocusedTextColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     emptyCharacter: String = "",
@@ -305,19 +311,27 @@ fun PasswordTextField(
     supportingTextStyle: TextStyle = MaterialTheme.typography.bodySmall,
     iconTint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     colors: TextFieldColors = OutlinedTextFieldDefaults.colors(
-        focusedLabelColor = MaterialTheme.colorScheme.primary,
+        focusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
         unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
         focusedBorderColor = MaterialTheme.colorScheme.primary,
-        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-        focusedContainerColor = MaterialTheme.colorScheme.surface,
-        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+        unfocusedBorderColor = if (value.isEmpty()) Color.Transparent else MaterialTheme.colorScheme.outline,
+
+        focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = if (value.isEmpty()) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+
         disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+
         errorBorderColor = MaterialTheme.colorScheme.error,
+
         errorLabelColor = MaterialTheme.colorScheme.error,
-        errorCursorColor = MaterialTheme.colorScheme.error,
+
         errorSupportingTextColor = MaterialTheme.colorScheme.error,
+
+        errorCursorColor = MaterialTheme.colorScheme.error,
         cursorColor = MaterialTheme.colorScheme.primary
     ),
     imeAction: ImeAction = ImeAction.Done,

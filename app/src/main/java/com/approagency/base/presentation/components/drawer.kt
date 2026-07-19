@@ -145,9 +145,7 @@ fun SimpleDrawerItem(
     modifier: Modifier = Modifier,
     colors: DrawerColors = DrawerColors.defaultColors(),
     shape: Shape = MaterialTheme.shapes.medium,
-    contentPadding: PaddingValues = PaddingValues(
-        horizontal = 8.dp, vertical = 10.dp
-    ),
+    contentPadding: PaddingValues = PaddingValues(6.dp),
     iconSize: Dp = 24.dp,
     iconSpacing: Dp = 8.dp,
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
@@ -211,9 +209,7 @@ fun DropdownDrawerItem(
     modifier: Modifier = Modifier,
     colors: DrawerColors = DrawerColors.defaultColors(),
     shape: Shape = MaterialTheme.shapes.medium,
-    contentPadding: PaddingValues = PaddingValues(
-        horizontal = 8.dp, vertical = 10.dp
-    ),
+    contentPadding: PaddingValues = PaddingValues(6.dp),
     iconSize: Dp = 24.dp,
     iconSpacing: Dp = 8.dp,
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium,

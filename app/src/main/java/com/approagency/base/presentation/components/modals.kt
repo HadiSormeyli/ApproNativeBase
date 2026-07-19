@@ -270,7 +270,7 @@ fun ApproModalBottomSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = padding),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ApproModalHeader(
                     title = title,

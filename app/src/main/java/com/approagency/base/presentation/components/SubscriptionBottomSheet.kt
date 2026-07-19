@@ -217,6 +217,7 @@ fun LoginSheetContent(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         when (step) {
@@ -295,7 +296,6 @@ fun LoginSheetContent(
                 )
 
                 OtpTextField(
-                    modifier = Modifier.fillMaxWidth(),
                     otpText = otp,
                     onOtpTextChange = { value, _ ->
                         onOtpChange(value)
