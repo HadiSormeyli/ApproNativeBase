@@ -23,8 +23,8 @@ object Appro {
 
         require(hasDeepLinkScheme == hasDeepLinkParser) {
             when {
-                hasDeepLinkScheme -> "DeepLinkParser is required when deepLinkScheme is specified"
-                else -> "deepLinkScheme is required when DeepLinkParser is specified"
+                hasDeepLinkScheme -> "DeepLinkParser is required when deepLink is specified"
+                else -> "deepLink is required when DeepLinkParser is specified"
             }
         }
 

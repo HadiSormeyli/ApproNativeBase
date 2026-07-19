@@ -17,6 +17,7 @@ import androidx.navigation.NavDeepLink
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.navOptions
 import com.approagency.base.model.ui.deepLink.DeepLinkNavigationType
 import com.approagency.base.model.ui.deepLink.DeepLinkTarget
 import com.approagency.base.theme.LocalBaseActivity
@@ -128,31 +129,33 @@ fun <T : Any> NavController.navigateAndClean(route: T, startDeputation: T) {
 fun NavController.navigateDeepLink(
     target: DeepLinkTarget
 ) {
-    when (target.navigationType) {
-        DeepLinkNavigationType.PUSH -> {
-            navigate(target.route)
-        }
+    val options = navOptions {
+        when (target.navigationType) {
+            DeepLinkNavigationType.PUSH -> Unit
 
-        DeepLinkNavigationType.SINGLE_TOP -> {
-            navigate(target.route) {
-                popUpTo(target.route) {
-                    inclusive = false
-                }
-
+            DeepLinkNavigationType.SINGLE_TOP -> {
                 launchSingleTop = true
             }
-        }
 
-        DeepLinkNavigationType.CLEAR_STACK -> {
-            navigate(target.route) {
-                popUpTo(
-                    graph.findStartDestination().id
-                ) {
+            DeepLinkNavigationType.CLEAR_STACK -> {
+                popUpTo(graph.findStartDestination().id) {
                     inclusive = true
                 }
 
                 launchSingleTop = true
             }
         }
+    }
+
+    when (val route = target.route) {
+        is String -> navigate(
+            route = route,
+            navOptions = options
+        )
+
+        else -> navigate(
+            route = route,
+            navOptions = options
+        )
     }
 }
