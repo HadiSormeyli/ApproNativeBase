@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.approagency.base.R
+import com.approagency.base.config.ApproConstants
 
 @Composable
 fun CustomOutlinedTextField(
@@ -191,7 +192,7 @@ fun OtpTextField(
     onComplete: (String) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    otpCount: Int = 5,
+    otpCount: Int = ApproConstants.OTP_COUNT,
     size: Dp = 48.dp,
     focusedSize: Dp = 56.dp,
     spacing: Dp = 4.dp,
@@ -207,69 +208,99 @@ fun OtpTextField(
     requestFocus: Boolean = true
 ) {
     require(otpCount > 0)
+
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
-    var completedOtp by rememberSaveable { mutableStateOf<String?>(null) }
+
     LaunchedEffect(enabled, requestFocus) {
-        if (enabled && requestFocus) focusRequester.requestFocus()
-    }
-    LaunchedEffect(otpText, otpCount) {
-        if (otpText.length == otpCount && completedOtp != otpText) {
-            completedOtp = otpText
-            focusManager.clearFocus()
-            onComplete(otpText)
-        } else if (otpText.length < otpCount) {
-            completedOtp = null
+        if (enabled && requestFocus) {
+            focusRequester.requestFocus()
         }
     }
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+
+    CompositionLocalProvider(
+        LocalLayoutDirection provides LayoutDirection.Ltr
+    ) {
         BasicTextField(
             value = TextFieldValue(
                 text = otpText,
                 selection = TextRange(otpText.length)
             ),
             onValueChange = {
-                val value = it.text.filter(Char::isDigit).take(otpCount)
-                onOtpTextChange(value, value.length == otpCount)
+                val value = it.text
+                    .filter(Char::isDigit)
+                    .take(otpCount)
+
+                val completed =
+                    value.length == otpCount &&
+                            otpText.length < otpCount
+
+                onOtpTextChange(value, completed)
+
+                if (completed) {
+                    focusManager.clearFocus()
+                    onComplete(value)
+                }
             },
-            modifier = modifier.focusRequester(focusRequester),
+            modifier = modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
             enabled = enabled,
-            textStyle = TextStyle(color = Color.Transparent),
+            textStyle = TextStyle(
+                color = Color.Transparent
+            ),
             cursorBrush = SolidColor(Color.Transparent),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.NumberPassword,
-                imeAction = if (otpText.length == otpCount) ImeAction.Done else ImeAction.Next
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    if (otpText.length == otpCount) focusManager.clearFocus()
-                }
+                imeAction = ImeAction.Done
             ),
             decorationBox = { innerTextField ->
-                Box {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
                     Row(
-                        modifier = Modifier.animateContentSize(),
-                        horizontalArrangement = Arrangement.Center,
+                        horizontalArrangement = Arrangement.spacedBy(
+                            spacing,
+                            Alignment.CenterHorizontally
+                        ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         repeat(otpCount) { index ->
-                            val isFocused = enabled && otpText.length == index
+                            val isFocused =
+                                enabled && otpText.length == index
+
                             val animatedSize by animateDpAsState(
-                                targetValue = if (isFocused) focusedSize else size,
+                                targetValue = if (isFocused) {
+                                    focusedSize
+                                } else {
+                                    size
+                                },
                                 animationSpec = tween(300),
                                 label = "otpSize"
                             )
+
                             val character = when {
-                                index < otpText.length -> otpText[index].toString()
-                                isFocused -> focusedCharacter
-                                else -> emptyCharacter
+                                index < otpText.length ->
+                                    otpText[index].toString()
+
+                                isFocused ->
+                                    focusedCharacter
+
+                                else ->
+                                    emptyCharacter
                             }
+
                             Box(
                                 modifier = Modifier
                                     .size(animatedSize)
                                     .border(
                                         width = borderWidth,
-                                        color = if (isFocused) focusedBorderColor else unfocusedBorderColor,
+                                        color = if (isFocused) {
+                                            focusedBorderColor
+                                        } else {
+                                            unfocusedBorderColor
+                                        },
                                         shape = shape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -277,14 +308,20 @@ fun OtpTextField(
                                 Text(
                                     text = character,
                                     style = textStyle,
-                                    color = if (isFocused) focusedTextColor else unfocusedTextColor,
+                                    color = if (isFocused) {
+                                        focusedTextColor
+                                    } else {
+                                        unfocusedTextColor
+                                    },
                                     textAlign = TextAlign.Center
                                 )
                             }
-                            if (index < otpCount - 1) Spacer(Modifier.width(spacing))
                         }
                     }
-                    Box(Modifier.size(1.dp)) {
+
+                    Box(
+                        modifier = Modifier.size(1.dp)
+                    ) {
                         innerTextField()
                     }
                 }

@@ -12,6 +12,7 @@ object ApproConstants {
     const val CONNECT_TIMEOUT = 30L
     const val READ_TIMEOUT = 30L
     const val WRITE_TIMEOUT = 240L
+    const val OTP_COUNT = 5
 
     const val SHIMMER_ANIMATION_DURATION = 300
 

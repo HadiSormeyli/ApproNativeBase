@@ -11,7 +11,7 @@ import com.approagency.base.paymnet.PaymentRequest
 class ApproContract {
 
     sealed class Event : ViewEvent {
-        data class Login(val phoneNumber: String) : Event()
+        data class CheckPhoneNumber(val phoneNumber: String) : Event()
         data object CheckStatus : Event()
         data class CheckOtp(
             val phoneNumber: String,
@@ -31,6 +31,7 @@ class ApproContract {
         data object EditPhoneNumber : Event()
         data object ResetPurchaseState : Event()
         data class SendFCMToken(val token: String) : Event()
+        data object Logout : Event()
     }
 
     data class State(

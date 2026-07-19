@@ -3,23 +3,18 @@ package com.approagency.base.session
 import com.approagency.base.local.room.dao.SessionDao
 import com.approagency.base.local.room.entity.SessionEntity
 import com.approagency.base.model.session.Session
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 class SessionManager(
     private val dao: SessionDao,
 ) {
     private val mutex = Mutex()
-    private val sessionScope = CoroutineScope(
-        SupervisorJob() + Dispatchers.IO
-    )
 
     private val _state = MutableStateFlow<SessionState>(SessionState.Loading)
     val state: StateFlow<SessionState> = _state.asStateFlow()
@@ -36,8 +31,8 @@ class SessionManager(
         _state.value = newState
     }
 
-    fun login(session: Session) {
-        sessionScope.launch {
+    suspend fun login(session: Session) {
+        withContext(Dispatchers.IO) {
             mutex.withLock {
                 val old = dao.get(session.id)
                 val now = System.currentTimeMillis()
@@ -64,16 +59,16 @@ class SessionManager(
         }
     }
 
-    fun updateTokens(
+    suspend fun updateTokens(
         id: String = Session.ID,
         approToken: String?,
         accessToken: String?,
         refreshToken: String?,
         expiresAt: Long?
     ) {
-        sessionScope.launch {
+        withContext(Dispatchers.IO) {
             mutex.withLock {
-                val current = dao.get() ?: return@launch
+                val current = dao.get() ?: return@withContext
 
                 dao.insert(
                     current.copy(
@@ -89,16 +84,16 @@ class SessionManager(
         }
     }
 
-    fun updateUser(
+    suspend fun updateUser(
         id: String = Session.ID,
         userId: String?,
         phoneNumber: String?,
         firstName: String?,
         lastName: String?
     ) {
-        sessionScope.launch {
+        withContext(Dispatchers.IO) {
             mutex.withLock {
-                val current = dao.get() ?: return@launch
+                val current = dao.get() ?: return@withContext
 
                 dao.insert(
                     current.copy(
@@ -114,8 +109,8 @@ class SessionManager(
         }
     }
 
-    fun logout() {
-        sessionScope.launch {
+    suspend fun logout() {
+        withContext(Dispatchers.IO) {
             mutex.withLock {
                 dao.clear()
 

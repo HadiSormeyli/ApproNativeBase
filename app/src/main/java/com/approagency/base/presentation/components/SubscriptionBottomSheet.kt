@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.approagency.base.config.ApproConstants
 import com.approagency.base.model.session.Session
 import com.approagency.base.model.ui.AuthStep
 import com.approagency.base.model.ui.SubscriptionBottomSheetText
@@ -65,7 +66,8 @@ fun SubscriptionBottomSheet(
     modifier: Modifier = Modifier,
     text: SubscriptionBottomSheetText = remember { SubscriptionBottomSheetText() },
     onRulesClick: () -> Unit,
-    sessionId: String = Session.ID
+    sessionId: String = Session.ID,
+    otpCount: Int = ApproConstants.OTP_COUNT
 ) {
     val activity = LocalBaseActivity.current
     val viewState by approViewModel.state
@@ -118,7 +120,7 @@ fun SubscriptionBottomSheet(
                 },
                 onSendPhone = {
                     approViewModel.setEvent(
-                        ApproContract.Event.Login(
+                        ApproContract.Event.CheckPhoneNumber(
                             viewState.phoneNumber.trim()
                         )
                     )
@@ -137,7 +139,8 @@ fun SubscriptionBottomSheet(
                         ApproContract.Event.EditPhoneNumber
                     )
                 },
-                onRulesClick = onRulesClick
+                onRulesClick = onRulesClick,
+                otpCount = otpCount
             )
 
             is SessionState.Login -> ProductsSheetContent(
@@ -182,34 +185,10 @@ fun LoginSheetContent(
     onSendPhone: () -> Unit,
     onCheckOtp: (String) -> Unit,
     onEditPhone: () -> Unit,
-    onRulesClick: () -> Unit
+    onRulesClick: () -> Unit,
+    otpCount: Int = ApproConstants.OTP_COUNT
 ) {
     val activity = LocalBaseActivity.current
-    val otpAutoFillBus: OtpAutoFillBus = koinInject()
-
-    val isSendingPhone = loginState is UiState.Loading
-    val isCheckingOtp = otpState is UiState.Loading
-    val isOtpStep = step == AuthStep.Otp
-
-    DisposableEffect(isOtpStep) {
-        val controller = activity as? OtpAutofillController
-
-        if (isOtpStep) {
-            controller?.startOtpAutofill()
-        }
-
-        onDispose {
-            controller?.stopOtpAutofill()
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        otpAutoFillBus.codes.collect { code ->
-            if (code.isNotBlank()) {
-                onCheckOtp(code)
-            }
-        }
-    }
 
     Column(
         modifier = Modifier
@@ -219,6 +198,8 @@ fun LoginSheetContent(
     ) {
         when (step) {
             AuthStep.Phone -> {
+                val isSendingPhone = loginState is UiState.Loading
+
                 Text(
                     text = text.enterPhone,
                     style = MaterialTheme.typography.bodyMedium,
@@ -274,6 +255,32 @@ fun LoginSheetContent(
             }
 
             AuthStep.Otp -> {
+                val otpAutoFillBus: OtpAutoFillBus = koinInject()
+                val isCheckingOtp = otpState is UiState.Loading
+
+
+                DisposableEffect(Unit) {
+                    val controller = activity as? OtpAutofillController
+
+                    controller?.startOtpAutofill()
+
+                    onDispose {
+                        controller?.stopOtpAutofill()
+                    }
+                }
+
+                LaunchedEffect(Unit) {
+                    otpAutoFillBus.codes.collect { code ->
+                        val otpCode = code
+                            .filter(Char::isDigit)
+                            .take(5)
+
+                        if (otpCode.length == otpCount && !isCheckingOtp) {
+                            onCheckOtp(otpCode)
+                        }
+                    }
+                }
+
                 Text(
                     text = buildAnnotatedString {
                         append(text.otpPrefix)
@@ -299,7 +306,8 @@ fun LoginSheetContent(
                         onOtpChange(value)
                     },
                     onComplete = onCheckOtp,
-                    enabled = !isCheckingOtp
+                    enabled = !isCheckingOtp,
+                    otpCount = otpCount
                 )
 
                 if (otpState is UiState.Error) {

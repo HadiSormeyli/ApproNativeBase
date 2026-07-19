@@ -69,9 +69,7 @@ fun DrawerContent(
     ),
     itemSpacing: Dp = 4.dp,
     itemShape: Shape = MaterialTheme.shapes.medium,
-    itemPadding: PaddingValues = PaddingValues(
-        horizontal = 8.dp, vertical = 10.dp
-    ),
+    itemPadding: PaddingValues = PaddingValues(4.dp),
     itemIconSize: Dp = 24.dp,
     itemIconSpacing: Dp = 8.dp,
     itemTextStyle: TextStyle = MaterialTheme.typography.bodyMedium,
@@ -91,7 +89,8 @@ fun DrawerContent(
                 shape = shape
             )
             .background(colors.containerColor, shape)
-            .clip(shape)
+            .clip(shape),
+        verticalArrangement = Arrangement.spacedBy(itemSpacing)
     ) {
         header?.invoke(this)
 
@@ -145,7 +144,7 @@ fun SimpleDrawerItem(
     modifier: Modifier = Modifier,
     colors: DrawerColors = DrawerColors.defaultColors(),
     shape: Shape = MaterialTheme.shapes.medium,
-    contentPadding: PaddingValues = PaddingValues(6.dp),
+    contentPadding: PaddingValues = PaddingValues(4.dp),
     iconSize: Dp = 24.dp,
     iconSpacing: Dp = 8.dp,
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
@@ -209,7 +208,7 @@ fun DropdownDrawerItem(
     modifier: Modifier = Modifier,
     colors: DrawerColors = DrawerColors.defaultColors(),
     shape: Shape = MaterialTheme.shapes.medium,
-    contentPadding: PaddingValues = PaddingValues(6.dp),
+    contentPadding: PaddingValues = PaddingValues(4.dp),
     iconSize: Dp = 24.dp,
     iconSpacing: Dp = 8.dp,
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium,

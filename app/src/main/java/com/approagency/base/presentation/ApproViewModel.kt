@@ -26,7 +26,7 @@ class ApproViewModel(
 
     override fun onTriggerEvent(event: ApproContract.Event) {
         when (event) {
-            is ApproContract.Event.Login -> loginUser(event.phoneNumber)
+            is ApproContract.Event.CheckPhoneNumber -> loginUser(event.phoneNumber)
             ApproContract.Event.CheckStatus -> checkStatus()
             ApproContract.Event.GetProducts -> getProducts()
             is ApproContract.Event.Purchase -> purchase(
@@ -70,9 +70,16 @@ class ApproViewModel(
             }
 
             is ApproContract.Event.SendFCMToken -> sendFCMToken(event.token)
+            ApproContract.Event.Logout -> logout()
         }
     }
 
+    private fun logout() {
+        viewModelScope.launch {
+            sessionManager.logout()
+            resetAuthStates()
+        }
+    }
 
     private fun sendFCMToken(token: String) {
         viewModelScope.launch {
@@ -132,6 +139,8 @@ class ApproViewModel(
         otp: String,
         sessionId: String,
     ) {
+        if (state.value.otpState is UiState.Loading) return
+
         viewModelScope.launch {
             repository.checkOtp(
                 mobile = phoneNumber,
@@ -141,7 +150,9 @@ class ApproViewModel(
                     is Resource.Error -> {
                         setState {
                             copy(
-                                otpState = UiState.Error(it.error)
+                                otpState = UiState.Error(it.error),
+                                phoneNumber = phoneNumber,
+                                otp = otp
                             )
                         }
                     }
@@ -149,7 +160,9 @@ class ApproViewModel(
                     is Resource.Loading -> {
                         setState {
                             copy(
-                                otpState = UiState.Loading()
+                                otpState = UiState.Loading(),
+                                phoneNumber = phoneNumber,
+                                otp = otp
                             )
                         }
                     }
@@ -170,7 +183,9 @@ class ApproViewModel(
                             copy(
                                 otpState = UiState.Success(
                                     session
-                                )
+                                ),
+                                phoneNumber = phoneNumber,
+                                otp = otp
                             )
                         }
                         sessionManager.login(session)
