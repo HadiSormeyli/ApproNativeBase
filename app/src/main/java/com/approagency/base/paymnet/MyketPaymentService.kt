@@ -30,7 +30,7 @@ class MyketPaymentService(
         request: PaymentRequest
     ): Flow<Resource<String>> {
         return networkCall {
-            if (config.isPaymentAvailable) {
+            if (!config.isPaymentAvailable) {
                 throw Failure.StoreUnavailable
             }
 

@@ -497,9 +497,9 @@ fun ProductItem(
 
     val containerColor by animateColorAsState(
         targetValue = if (isSelected) {
-            MaterialTheme.colorScheme.primaryContainer
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.06f)
         } else {
-            MaterialTheme.colorScheme.surfaceVariant
+            MaterialTheme.colorScheme.surface
         },
         label = "productContainerColor"
     )
@@ -522,7 +522,7 @@ fun ProductItem(
             .fillMaxWidth()
             .animateContentSize(),
         onClick = onClick,
-        shape = MaterialTheme.shapes.large,
+        shape = MaterialTheme.shapes.medium,
         color = containerColor,
         tonalElevation = elevation,
         border = BorderStroke(

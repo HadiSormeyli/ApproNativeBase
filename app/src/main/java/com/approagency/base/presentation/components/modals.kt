@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -222,7 +223,16 @@ fun ApproModalBottomSheet(
         ApproModalDragHandle()
     },
     headerAction: (@Composable () -> Unit)? = null,
-    overlay: @Composable BoxScope.() -> Unit = {},
+    overlay: @Composable BoxScope.() -> Unit = {
+        val activity = LocalBaseActivity.current
+
+        ApproSnackBarHost(
+            hostState = activity.snackBarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
+        )
+    },
     content: @Composable (SheetState) -> Unit
 ) {
     val activity = LocalBaseActivity.current
@@ -265,10 +275,13 @@ fun ApproModalBottomSheet(
             shouldDismissOnClickOutside = dismissOnClickOutside
         )
     ) {
-        Box {
+        Box(
+            modifier = Modifier.wrapContentHeight()
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(color = containerColor)
                     .padding(horizontal = padding),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -277,8 +290,10 @@ fun ApproModalBottomSheet(
                     onDismiss = onDismiss,
                     action = headerAction
                 )
+
                 content(sheetState)
             }
+
             overlay()
         }
     }
