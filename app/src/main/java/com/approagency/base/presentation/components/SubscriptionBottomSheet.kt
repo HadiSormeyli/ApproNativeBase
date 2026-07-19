@@ -92,7 +92,7 @@ fun SubscriptionBottomSheet(
             text.loginTitle
         },
         onDismiss = {
-            activity.hideSubscriptionDialog()
+            activity.hideSubscriptionBottomSheet()
             onDismiss()
         }
     ) {
