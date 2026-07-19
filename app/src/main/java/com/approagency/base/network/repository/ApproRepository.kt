@@ -1,18 +1,20 @@
 package com.approagency.base.network.repository
 
 import com.approagency.base.config.ApproConfig
-import com.approagency.base.model.ui.Promotion
 import com.approagency.base.model.network.Resource
+import com.approagency.base.model.ui.Promotion
 import com.approagency.base.model.user.Product
 import com.approagency.base.model.user.UserResponse
 import com.approagency.base.model.user.UserStatus
 import com.approagency.base.network.networkCall
+import com.approagency.base.network.service.ApproPrivateService
 import com.approagency.base.network.service.ApproService
 import kotlinx.coroutines.flow.Flow
 
 class ApproRepository(
     private val config: ApproConfig,
-    private val service: ApproService
+    private val service: ApproService,
+    private val privateService: ApproPrivateService
 ) {
     fun getPromotions(): Flow<Resource<List<Promotion>>> {
         return networkCall {
@@ -48,7 +50,7 @@ class ApproRepository(
         packageName: String = config.packageName
     ): Flow<Resource<UserStatus>> {
         return networkCall {
-            service.getStatus(
+            privateService.getStatus(
                 packageName
             )
         }
@@ -58,7 +60,7 @@ class ApproRepository(
         packageName: String = config.packageName
     ): Flow<Resource<List<Product>>> {
         return networkCall {
-            service.getProducts(
+            privateService.getProducts(
                 packageName
             )
         }
@@ -70,7 +72,7 @@ class ApproRepository(
         body: Map<String, String>
     ): Flow<Resource<Boolean>> {
         return networkCall {
-            service.subscribeProduct(
+            privateService.subscribeProduct(
                 packageName,
                 productId,
                 body
@@ -83,7 +85,7 @@ class ApproRepository(
         packageName: String = config.packageName
     ): Flow<Resource<Unit>> {
         return networkCall {
-            service.sendFCMToken(
+            privateService.sendFCMToken(
                 token,
                 packageName
             )

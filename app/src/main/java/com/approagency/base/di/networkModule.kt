@@ -6,6 +6,7 @@ import com.approagency.base.network.createPublicOkHttpClient
 import com.approagency.base.network.createRetrofit
 import com.approagency.base.network.interceptor.ApproTokenInterceptor
 import com.approagency.base.network.repository.ApproRepository
+import com.approagency.base.network.service.ApproPrivateService
 import com.approagency.base.network.service.ApproService
 import com.approagency.base.utils.createWebService
 import com.google.gson.Gson
@@ -59,9 +60,16 @@ val networkModule = module {
     }
 
     single {
+        get<Retrofit>(
+            named(ApproConstants.APPRO_PRIVATE_RETROFIT)
+        ).createWebService<ApproPrivateService>()
+    }
+
+    single {
         ApproRepository(
             config = get(),
-            service = get()
+            service = get(),
+            privateService = get()
         )
     }
 }

@@ -213,7 +213,6 @@ fun ApproModalBottomSheet(
     expandedCornerRadius: Dp = 0.dp,
     defaultCornerRadius: Dp = 32.dp,
     containerColor: Color = MaterialTheme.colorScheme.background,
-    contentColor: Color = MaterialTheme.colorScheme.onBackground,
     tonalElevation: Dp = 12.dp,
     sheetMaxWidth: Dp = 600.dp,
     dismissOnBackPress: Boolean = true,
@@ -263,7 +262,6 @@ fun ApproModalBottomSheet(
             topEnd = cornerRadius
         ),
         containerColor = containerColor,
-        contentColor = contentColor,
         tonalElevation = tonalElevation,
         sheetMaxWidth = sheetMaxWidth,
         dragHandle = dragHandle,

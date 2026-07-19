@@ -7,7 +7,7 @@ import com.approagency.base.local.room.dao.SessionDao
 import com.approagency.base.model.network.Failure
 import com.approagency.base.model.network.Resource
 import com.approagency.base.network.networkCall
-import com.approagency.base.network.service.ApproService
+import com.approagency.base.network.service.ApproPrivateService
 import com.approagency.base.utils.isPackageInstalled
 import ir.myket.billingclient.IabHelper
 import ir.myket.billingclient.util.IabResult
@@ -22,7 +22,7 @@ import kotlin.coroutines.resumeWithException
 class MyketPaymentService(
     private val config: ApproConfig,
     private val sessionDao: SessionDao,
-    private val approService: ApproService,
+    private val service: ApproPrivateService,
     private val marketPackageName: String = "ir.mservices.market"
 ) : PaymentService {
     override fun purchase(
@@ -81,7 +81,7 @@ class MyketPaymentService(
                     throw Failure.PurchaseCancelled
                 }
 
-                val response = approService.subscribeProduct(
+                val response = service.subscribeProduct(
                     packageName = config.packageName,
                     productId = request.productId,
                     body = mapOf(

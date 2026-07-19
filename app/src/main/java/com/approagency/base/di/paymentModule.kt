@@ -14,15 +14,15 @@ val paymentModule = module {
 
         when (config.flavor) {
             Flavor.BAZAAR -> BazaarPaymentService(
-                config = config, sessionDao = get(), approService = get()
+                config = config, sessionDao = get(), service = get()
             )
 
             Flavor.MYKET -> MyketPaymentService(
-                config = config, sessionDao = get(), approService = get()
+                config = config, sessionDao = get(), service = get()
             )
 
             Flavor.GOOGLE_PLAY -> GooglePlayPaymentService(
-                config = config, sessionDao = get(), approService = get()
+                config = config, sessionDao = get(), service = get()
             )
         }
     }

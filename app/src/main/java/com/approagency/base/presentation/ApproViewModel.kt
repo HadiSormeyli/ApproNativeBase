@@ -8,10 +8,12 @@ import com.approagency.base.model.network.Resource
 import com.approagency.base.model.session.Session
 import com.approagency.base.model.ui.AuthStep
 import com.approagency.base.model.ui.UiState
+import com.approagency.base.model.ui.UiState.Idle
 import com.approagency.base.network.repository.ApproRepository
 import com.approagency.base.paymnet.PaymentRequest
 import com.approagency.base.paymnet.PaymentService
 import com.approagency.base.session.SessionManager
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -19,9 +21,11 @@ class ApproViewModel(
     private val repository: ApproRepository,
     private val sessionManager: SessionManager,
     private val config: ApproConfig,
-    private val paymentService: PaymentService
+    private val paymentService: PaymentService,
 ) : BaseViewModel<ApproContract.Event, ApproContract.State, ApproContract.SideEffect>(
 ) {
+    private var promotionJob: Job? = null
+
     override fun setInitialState() = ApproContract.State()
 
     override fun onTriggerEvent(event: ApproContract.Event) {
@@ -39,8 +43,8 @@ class ApproViewModel(
                 setState {
                     copy(
                         step = AuthStep.Phone,
-                        loginState = UiState.Idle(),
-                        otpState = UiState.Idle(),
+                        loginState = Idle(),
+                        otpState = Idle(),
                         otp = ""
                     )
                 }
@@ -71,6 +75,20 @@ class ApproViewModel(
 
             is ApproContract.Event.SendFCMToken -> sendFCMToken(event.token)
             ApproContract.Event.Logout -> logout()
+            ApproContract.Event.FetchPromotions -> fetchPromotions()
+        }
+    }
+
+    private fun fetchPromotions() {
+        promotionJob?.cancel()
+        promotionJob = viewModelScope.launch {
+            repository.getPromotions().collect {
+                setState {
+                    copy(
+                        promotions = it.toUiState()
+                    )
+                }
+            }
         }
     }
 
@@ -283,5 +301,11 @@ class ApproViewModel(
                 sessionManager.logout()
             }
         }
+    }
+
+    override fun onCleared() {
+        promotionJob?.cancel()
+        promotionJob = null
+        super.onCleared()
     }
 }

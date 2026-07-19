@@ -111,7 +111,7 @@ fun ApproSnackBar(
 
                 Text(
                     text = visuals.message,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -119,7 +119,7 @@ fun ApproSnackBar(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = label,
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.clickable {
                             visuals.onActionClick?.invoke()
                             onDismiss()
@@ -136,7 +136,7 @@ fun ApproSnackBar(
                 }) {
                     Icon(
                         imageVector = Icons.Default.Clear,
-                        tint = MaterialTheme.colorScheme.onPrimary,
+                        tint = MaterialTheme.colorScheme.onBackground,
                         contentDescription = "Dismiss"
                     )
                 }

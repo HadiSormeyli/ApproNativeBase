@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import com.approagency.base.model.ui.UiState
 import com.approagency.base.model.session.Session
 import com.approagency.base.model.ui.AuthStep
+import com.approagency.base.model.ui.Promotion
 import com.approagency.base.model.user.Product
 import com.approagency.base.model.user.UserStatus
 import com.approagency.base.paymnet.PaymentRequest
@@ -32,6 +33,7 @@ class ApproContract {
         data object ResetPurchaseState : Event()
         data class SendFCMToken(val token: String) : Event()
         data object Logout : Event()
+        data object FetchPromotions : Event()
     }
 
     data class State(
@@ -42,7 +44,8 @@ class ApproContract {
         val otpState: UiState<Session> = UiState.Idle(),
         val statusState: UiState<UserStatus> = UiState.Loading(),
         val productsState: UiState<List<Product>> = UiState.Loading(),
-        val purchaseState: UiState<String> = UiState.Idle()
+        val purchaseState: UiState<String> = UiState.Idle(),
+        val promotions: UiState<List<Promotion>> = UiState.Idle()
     ) : ViewState
 
     sealed class SideEffect : ViewSideEffect

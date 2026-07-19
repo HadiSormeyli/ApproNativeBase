@@ -32,27 +32,4 @@ interface ApproService {
         @Field("mobile") mobile: String,
         @Field("token") token: String
     ): UserResponse
-
-    @GET("status/")
-    suspend fun getStatus(
-        @Query("package_name") packageName: String
-    ): UserStatus
-
-    @GET("package-names/{name}/products/")
-    suspend fun getProducts(
-        @Path("name") packageName: String
-    ): List<Product>
-
-    @PUT("package-names/{name}/products/{productId}/subscribe")
-    suspend fun subscribeProduct(
-        @Path("name") packageName: String,
-        @Path("productId") productId: Int,
-        @Body body: Map<String, String>
-    ): Response<ResponseBody>
-
-    @POST("profile/")
-    suspend fun sendFCMToken(
-        @Query("fcm_token") fcmToken: String,
-        @Query("package_name") packageName: String,
-    ): ResponseBody
 }
