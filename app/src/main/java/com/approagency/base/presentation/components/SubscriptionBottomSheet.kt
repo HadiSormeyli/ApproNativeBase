@@ -64,25 +64,14 @@ fun SubscriptionBottomSheet(
     onDismiss: () -> Unit = {},
     modifier: Modifier = Modifier,
     text: SubscriptionBottomSheetText = remember { SubscriptionBottomSheetText() },
-    onRulesClick: () -> Unit
+    onRulesClick: () -> Unit,
+    sessionId: String = Session.ID
 ) {
     val activity = LocalBaseActivity.current
     val viewState by approViewModel.state
     val sessionState by activity.sessionManager.state.collectAsStateWithLifecycle()
 
     val isLoggedIn = sessionState is SessionState.Login
-
-    LaunchedEffect(isLoggedIn) {
-        if (isLoggedIn) {
-            approViewModel.setEvent(
-                ApproContract.Event.GetProducts
-            )
-        } else {
-            approViewModel.setEvent(
-                ApproContract.Event.ResetLoginState
-            )
-        }
-    }
 
     DisposableEffect(approViewModel) {
         onDispose {
@@ -138,8 +127,8 @@ fun SubscriptionBottomSheet(
                     approViewModel.setEvent(
                         ApproContract.Event.CheckOtp(
                             phoneNumber = viewState.phoneNumber.trim(),
-                            otp = viewState.otp.trim(),
-                            sessionId = Session.ID
+                            otp = it,
+                            sessionId = sessionId
                         )
                     )
                 },
@@ -191,7 +180,7 @@ fun LoginSheetContent(
     onPhoneNumberChange: (String) -> Unit,
     onOtpChange: (String) -> Unit,
     onSendPhone: () -> Unit,
-    onCheckOtp: () -> Unit,
+    onCheckOtp: (String) -> Unit,
     onEditPhone: () -> Unit,
     onRulesClick: () -> Unit
 ) {
@@ -219,7 +208,7 @@ fun LoginSheetContent(
             onOtpChange(code)
 
             if (code.isNotBlank()) {
-                onCheckOtp()
+                onCheckOtp(code)
             }
         }
     }
@@ -311,7 +300,9 @@ fun LoginSheetContent(
                     onOtpTextChange = { value, _ ->
                         onOtpChange(value)
                     },
-                    onComplete = onCheckOtp,
+                    onComplete = {
+                        onCheckOtp(otp.trim())
+                    },
                     enabled = !isCheckingOtp
                 )
 
@@ -328,7 +319,9 @@ fun LoginSheetContent(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = otp.trim().isNotEmpty(),
                     isLoading = isCheckingOtp,
-                    onClick = onCheckOtp
+                    onClick = {
+                        onCheckOtp(otp.trim())
+                    }
                 )
 
                 SimpleTextButton(

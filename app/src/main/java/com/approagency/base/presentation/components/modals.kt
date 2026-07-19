@@ -9,9 +9,12 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -28,14 +31,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.SecureFlagPolicy
+import com.approagency.base.R
+import com.approagency.base.theme.LocalBaseActivity
+import com.approagency.base.utils.heightDp
 import androidx.compose.material3.ModalBottomSheet as MaterialModalBottomSheet
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,8 +54,8 @@ import androidx.compose.material3.ModalBottomSheet as MaterialModalBottomSheet
 fun ApproAlertBottomSheet(
     title: String,
     description: String,
-    confirmText: String,
-    cancelText: String,
+    confirmText: String = stringResource(R.string.confirm),
+    cancelText: String = stringResource(R.string.cancel),
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
@@ -168,7 +179,7 @@ fun ApproModalDragHandle(
     height: Dp = 4.dp,
     containerHeight: Dp = 24.dp,
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    containerColor: Color = MaterialTheme.colorScheme.surface,
+    containerColor: Color = MaterialTheme.colorScheme.background,
     shape: Shape = RoundedCornerShape(50)
 ) {
     Box(
@@ -200,8 +211,8 @@ fun ApproModalBottomSheet(
     padding: Dp = 16.dp,
     expandedCornerRadius: Dp = 0.dp,
     defaultCornerRadius: Dp = 32.dp,
-    containerColor: Color = MaterialTheme.colorScheme.surface,
-    contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    containerColor: Color = MaterialTheme.colorScheme.background,
+    contentColor: Color = MaterialTheme.colorScheme.onBackground,
     tonalElevation: Dp = 12.dp,
     sheetMaxWidth: Dp = 600.dp,
     dismissOnBackPress: Boolean = true,
@@ -214,16 +225,27 @@ fun ApproModalBottomSheet(
     overlay: @Composable BoxScope.() -> Unit = {},
     content: @Composable (SheetState) -> Unit
 ) {
+    val activity = LocalBaseActivity.current
+    val density = LocalDensity.current
+    val height = remember { mutableStateOf(0.dp) }
+    val statusBarSize = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val isDarkMode = !activity.themeManager.isDarkMode()
+
     val cornerRadius by animateDpAsState(
-        targetValue = if (sheetState.targetValue == SheetValue.Expanded) {
+        targetValue = if (sheetState.targetValue == SheetValue.Expanded && height.value >= activity.heightDp) {
             expandedCornerRadius
         } else {
             defaultCornerRadius
         },
         label = "bottomSheetCornerRadius"
     )
+
     MaterialModalBottomSheet(
-        modifier = modifier,
+        modifier = modifier.onGloballyPositioned {
+            height.value = with(density) {
+                it.size.height.toDp() + statusBarSize
+            }
+        },
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         shape = RoundedCornerShape(
@@ -236,6 +258,8 @@ fun ApproModalBottomSheet(
         sheetMaxWidth = sheetMaxWidth,
         dragHandle = dragHandle,
         properties = ModalBottomSheetProperties(
+            isAppearanceLightStatusBars = isDarkMode,
+            isAppearanceLightNavigationBars = isDarkMode,
             securePolicy = securePolicy,
             shouldDismissOnBackPress = dismissOnBackPress,
             shouldDismissOnClickOutside = dismissOnClickOutside
@@ -245,7 +269,8 @@ fun ApproModalBottomSheet(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = padding)
+                    .padding(horizontal = padding),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 ApproModalHeader(
                     title = title,

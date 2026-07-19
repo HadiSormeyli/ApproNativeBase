@@ -70,6 +70,7 @@ abstract class BaseActivity : ComponentActivity(), OtpAutofillController {
         }
 
     protected var showSubscriptionBottomSheet by mutableStateOf(false)
+    protected var showTermsBottomSheet by mutableStateOf(false)
 
     val sessionManager: SessionManager by inject()
     val themeManager: ThemeManager by inject()
@@ -77,10 +78,6 @@ abstract class BaseActivity : ComponentActivity(), OtpAutofillController {
     val deepLinkManager: DeepLinkManager by inject()
 
     var language: String = config.defaultLocale.language
-
-    companion object {
-        private val INTENT_FLAG_KEY = "IS_INTENT_HANDLED"
-    }
 
     @Composable
     abstract fun CreateView()
@@ -173,15 +170,23 @@ abstract class BaseActivity : ComponentActivity(), OtpAutofillController {
         }
     }
 
-    fun showSubscriptionDialog() {
+    fun showSubscriptionBottomSheet() {
         composeScope.launch {
             drawerState.close()
         }
         showSubscriptionBottomSheet = true
     }
 
-    fun hideSubscriptionDialog() {
+    fun hideSubscriptionBottomSheet() {
         showSubscriptionBottomSheet = false
+    }
+
+    fun showTermsBottomSheet() {
+        showTermsBottomSheet = true
+    }
+
+    fun hideTermsBottomSheet() {
+        showTermsBottomSheet = false
     }
 
     fun showSnackBar(

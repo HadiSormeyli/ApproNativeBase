@@ -19,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
@@ -40,13 +39,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+
 @Composable
 fun FilledTextButton(
     text: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     shape: Shape = MaterialTheme.shapes.extraLarge,
-    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    colors: ButtonColors = ButtonDefaults.buttonColors(
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+        disabledContainerColor = MaterialTheme.colorScheme.surfaceDim,
+        disabledContentColor = MaterialTheme.colorScheme.onSurface
+    ),
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     style: TextStyle = MaterialTheme.typography.labelLarge,
     textAlign: TextAlign = TextAlign.Center,
@@ -74,7 +79,12 @@ fun OutlinedTextButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     shape: Shape = MaterialTheme.shapes.extraLarge,
-    colors: ButtonColors = ButtonDefaults.outlinedButtonColors(),
+    colors: ButtonColors = ButtonDefaults.outlinedButtonColors(
+        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.primary,
+        disabledContainerColor = MaterialTheme.colorScheme.surfaceDim,
+        disabledContentColor = MaterialTheme.colorScheme.onSurface
+    ),
     border: BorderStroke? = ButtonDefaults.outlinedButtonBorder(enabled),
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     style: TextStyle = MaterialTheme.typography.labelLarge,
@@ -105,7 +115,12 @@ fun LoadingButton(
     enabled: Boolean = true,
     isLoading: Boolean = false,
     shape: Shape = MaterialTheme.shapes.extraLarge,
-    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    colors: ButtonColors = ButtonDefaults.buttonColors(
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+        disabledContainerColor = MaterialTheme.colorScheme.surfaceDim,
+        disabledContentColor = MaterialTheme.colorScheme.onSurface
+    ),
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     style: TextStyle = MaterialTheme.typography.labelLarge,
     loadingSize: Dp = 22.dp,
@@ -122,7 +137,7 @@ fun LoadingButton(
         if (isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(loadingSize),
-                color = LocalContentColor.current,
+                color = colors.contentColor,
                 strokeWidth = 2.dp
             )
         } else {
@@ -140,7 +155,12 @@ fun SimpleTextButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     shape: Shape = MaterialTheme.shapes.extraLarge,
-    colors: ButtonColors = ButtonDefaults.textButtonColors(),
+    colors: ButtonColors = ButtonDefaults.textButtonColors(
+        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.primary,
+        disabledContainerColor = MaterialTheme.colorScheme.surfaceDim,
+        disabledContentColor = MaterialTheme.colorScheme.onSurface
+    ),
     contentPadding: PaddingValues = ButtonDefaults.TextButtonContentPadding,
     style: TextStyle = MaterialTheme.typography.labelLarge,
     textAlign: TextAlign = TextAlign.Center,
@@ -168,7 +188,7 @@ fun SimpleIconButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     colors: IconButtonColors = IconButtonDefaults.iconButtonColors(),
-    tint: Color = Color.Unspecified,
+    tint: Color = MaterialTheme.colorScheme.onSurface,
     contentDescription: String? = null,
     onClick: () -> Unit
 ) {
@@ -192,7 +212,7 @@ fun SimpleIconButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     colors: IconButtonColors = IconButtonDefaults.iconButtonColors(),
-    tint: Color = Color.Unspecified,
+    tint: Color = MaterialTheme.colorScheme.onSurface,
     contentDescription: String? = null,
     onClick: () -> Unit
 ) {
@@ -221,7 +241,25 @@ fun LabeledSwitchButton(
     labelColor: Color = MaterialTheme.colorScheme.onSurface,
     horizontalArrangement: Arrangement.Horizontal = Arrangement.SpaceBetween,
     spacing: Dp = 16.dp,
-    colors: SwitchColors = SwitchDefaults.colors()
+    colors: SwitchColors = SwitchDefaults.colors(
+        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+        checkedTrackColor = MaterialTheme.colorScheme.primary,
+        checkedBorderColor = MaterialTheme.colorScheme.primary,
+        checkedIconColor = MaterialTheme.colorScheme.onPrimary,
+
+        uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+        uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+        uncheckedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+        disabledCheckedThumbColor = MaterialTheme.colorScheme.onSurface,
+        disabledCheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+        disabledCheckedBorderColor = MaterialTheme.colorScheme.outline,
+
+        disabledUncheckedThumbColor = MaterialTheme.colorScheme.onSurface,
+        disabledUncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+        disabledUncheckedBorderColor = MaterialTheme.colorScheme.outline
+    )
 ) {
     Row(
         modifier = modifier.toggleable(
@@ -259,7 +297,14 @@ fun LabeledCheckBox(
     enabled: Boolean = true,
     spacing: Dp = 8.dp,
     textStyle: TextStyle = MaterialTheme.typography.labelMedium,
-    colors: CheckboxColors = CheckboxDefaults.colors()
+    colors: CheckboxColors = CheckboxDefaults.colors(
+        checkedColor = MaterialTheme.colorScheme.primary,
+        uncheckedColor = MaterialTheme.colorScheme.outline,
+        checkmarkColor = MaterialTheme.colorScheme.onPrimary,
+
+        disabledCheckedColor = MaterialTheme.colorScheme.surfaceVariant,
+        disabledUncheckedColor = MaterialTheme.colorScheme.outline
+    )
 ) {
     Row(
         modifier = modifier.toggleable(

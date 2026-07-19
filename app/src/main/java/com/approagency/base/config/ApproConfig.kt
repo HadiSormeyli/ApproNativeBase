@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidedValue
 import androidx.compose.ui.graphics.Color
 import androidx.core.net.toUri
+import com.approagency.base.model.ui.Label
+import com.approagency.base.model.ui.LegalConfig
 import com.approagency.base.model.ui.ShimmerColors
 import com.approagency.base.theme.ApproShapes
 import com.approagency.base.theme.ApproTypography
@@ -23,8 +25,14 @@ data class ApproConfig(
     val versionName: String,
     val versionCode: Int,
     val debug: Boolean,
+    val appName: String,
+    val lastUpdate: String,
     val storeLink: String? = null,
     val deepLink: String = "",
+    val legalConfig: LegalConfig = LegalConfig(
+        appName = appName,
+        lastUpdated = lastUpdate
+    ),
     val deepLinks: List<String> = listOf(deepLink),
     val isPaymentAvailable: Boolean = paymentRsaKey.isNotEmpty(),
     val defaultLocale: Locale = Locale.forLanguageTag("fa-IR"),

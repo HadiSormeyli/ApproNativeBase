@@ -163,6 +163,7 @@ class ApproViewModel(
                             )
                         }
                         sessionManager.login(session)
+                        getProducts()
                         checkStatus()
                     }
                 }
@@ -208,11 +209,21 @@ class ApproViewModel(
                         is Resource.Error -> {
                             if (it.error.code == Failure.Unauthorized.code || it.error.code == Failure.Forbidden.code) {
                                 sessionManager.logout()
-                            }
-                            setState {
-                                copy(
-                                    statusState = UiState.Error(it.error)
-                                )
+
+                                setState {
+                                    copy(
+                                        step = AuthStep.Phone,
+                                        otp = "",
+                                        phoneNumber = "",
+                                        statusState = UiState.Error(it.error)
+                                    )
+                                }
+                            } else {
+                                setState {
+                                    copy(
+                                        statusState = UiState.Error(it.error)
+                                    )
+                                }
                             }
                         }
 
