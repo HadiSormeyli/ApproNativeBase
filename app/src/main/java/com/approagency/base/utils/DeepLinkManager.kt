@@ -1,5 +1,7 @@
 package com.approagency.base.utils
 
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import androidx.core.net.toUri
 import com.approagency.base.config.ApproConfig
@@ -11,6 +13,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import org.koin.core.context.GlobalContext.get
 import java.util.concurrent.atomic.AtomicLong
 
 /**
@@ -70,40 +73,6 @@ class DeepLinkManager(
         this.parser = parser
     }
 
-    fun createLink(
-        route: String,
-        pathParameters: List<Any?> = emptyList(),
-        queryParameters: Map<String, Any?> = emptyMap()
-    ): String {
-        require(config.deepLink.isNotBlank()) {
-            "Deep link must not be empty"
-        }
-
-        return config.deepLink.toUri()
-            .buildUpon()
-            .apply {
-                route
-                    .trim('/')
-                    .split('/')
-                    .filter(String::isNotBlank)
-                    .forEach(::appendPath)
-
-                pathParameters.forEach { value ->
-                    value?.let {
-                        appendPath(it.toString())
-                    }
-                }
-
-                queryParameters.forEach { (key, value) ->
-                    value?.let {
-                        appendQueryParameter(key, it.toString())
-                    }
-                }
-            }
-            .build()
-            .toString()
-    }
-
     fun handle(
         link: String?,
         data: Map<String, String> = emptyMap()
@@ -153,5 +122,65 @@ class DeepLinkManager(
     @OptIn(ExperimentalCoroutinesApi::class)
     fun clear() {
         _events.resetReplayCache()
+    }
+
+    companion object {
+        fun createLink(
+            route: String,
+            pathParameters: List<Any?> = emptyList(),
+            queryParameters: Map<String, Any?> = emptyMap(),
+            config: ApproConfig = get().get<ApproConfig>()
+        ): String {
+            require(config.deepLink.isNotBlank()) {
+                "Deep link must not be empty"
+            }
+
+            return config.deepLink.toUri()
+                .buildUpon()
+                .apply {
+                    route
+                        .trim('/')
+                        .split('/')
+                        .filter(String::isNotBlank)
+                        .forEach(::appendPath)
+
+                    pathParameters.forEach { value ->
+                        value?.let {
+                            appendPath(it.toString())
+                        }
+                    }
+
+                    queryParameters.forEach { (key, value) ->
+                        value?.let {
+                            appendQueryParameter(key, it.toString())
+                        }
+                    }
+                }
+                .build()
+                .toString()
+        }
+
+        fun createDeepLinkIntent(
+            context: Context,
+            route: String,
+            pathParameters: List<Any?> = emptyList(),
+            queryParameters: Map<String, Any?> = emptyMap(),
+            config: ApproConfig = get().get<ApproConfig>()
+        ): PendingIntent {
+            val deepLinkIntent =
+                Intent(
+                    Intent.ACTION_VIEW,
+                    createLink(route, pathParameters, queryParameters, config).toUri()
+                ).apply {
+                    flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+
+            return PendingIntent.getActivity(
+                context,
+                0,
+                deepLinkIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        }
     }
 }

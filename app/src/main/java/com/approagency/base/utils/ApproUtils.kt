@@ -18,7 +18,6 @@ import java.io.File
 import java.io.FileOutputStream
 
 object ApproUtils {
-
     fun getBitmapFromUri(context: Context, uri: Uri): Bitmap? {
         return try {
             val inputStream = context.contentResolver.openInputStream(uri) ?: return null

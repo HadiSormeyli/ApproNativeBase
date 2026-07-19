@@ -91,7 +91,7 @@ fun ShimmerIconButton(
 
 @Composable
 fun shimmerColors(): ShimmerColors {
-    val color = MaterialTheme.colorScheme.surfaceVariant
+    val color = MaterialTheme.colorScheme.surfaceDim
 
     return koinInject<ApproConfig>().shimmerColors ?: ShimmerColors(
         image = listOf(

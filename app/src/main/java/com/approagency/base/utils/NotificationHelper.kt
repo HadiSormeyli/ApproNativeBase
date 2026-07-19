@@ -19,6 +19,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.approagency.base.R
 import com.approagency.base.model.ui.notification.NotificationChannelConfig
 import com.approagency.base.model.ui.notification.NotificationChannelGroupConfig
 import com.approagency.base.model.ui.notification.NotificationRequest
@@ -317,5 +318,35 @@ class NotificationHelper(
 
     fun cancelAll() {
         manager.cancelAll()
+    }
+
+
+    fun showNoAccessNotification(
+        context: Context,
+        channel: String,
+        route: String,
+        title: String,
+        content: String? = null,
+        smallIcon: Int
+    ) {
+        show(
+            NotificationRequest(
+                channelId = channel,
+                smallIcon = smallIcon,
+                title = title,
+                text = content ?: ContextCompat.getString(
+                    context,
+                    R.string.error_no_access
+                ),
+                priority = NotificationCompat.PRIORITY_HIGH,
+                category = NotificationCompat.CATEGORY_STATUS,
+                autoCancel = true,
+                silent = false,
+                contentIntent = DeepLinkManager.createDeepLinkIntent(
+                    context = context,
+                    route = route
+                )
+            )
+        )
     }
 }
