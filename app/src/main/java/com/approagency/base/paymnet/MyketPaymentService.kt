@@ -41,6 +41,8 @@ class MyketPaymentService(
             val session = sessionDao.get(request.sessionId)
                 ?: throw Failure.Unauthorized
 
+            if (session.isPremium) throw Failure.HaveSubscription
+
             val approToken = session.approToken
             val phoneNumber = session.phoneNumber
             val versionCode = config.versionCode

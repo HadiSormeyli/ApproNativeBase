@@ -7,7 +7,6 @@ import com.approagency.base.model.network.Failure
 import com.approagency.base.model.network.Resource
 import com.approagency.base.network.networkCall
 import com.approagency.base.network.service.ApproPrivateService
-import com.approagency.base.network.service.ApproService
 import com.approagency.base.utils.isPackageInstalled
 import ir.cafebazaar.poolakey.Connection
 import ir.cafebazaar.poolakey.Payment
@@ -41,6 +40,8 @@ class BazaarPaymentService(
 
             val session = sessionDao.get(request.sessionId)
                 ?: throw Failure.Unauthorized
+
+            if (session.isPremium) throw Failure.HaveSubscription
 
             val approToken = session.approToken
             val phoneNumber = session.phoneNumber

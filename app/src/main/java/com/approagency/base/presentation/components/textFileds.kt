@@ -1,16 +1,13 @@
 package com.approagency.base.presentation.components
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -109,28 +106,11 @@ fun CustomOutlinedTextField(
     require(maxLength > 0)
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    val textState = remember {
-        mutableStateOf(
-            TextFieldValue(
-                value,
-                selection = TextRange(value.length)
-            )
-        )
-    }
-
-    LaunchedEffect(value) {
-        if (value != textState.value.text) {
-            textState.value = TextFieldValue(
-                text = value,
-                selection = TextRange(value.length)
-            )
-        }
-    }
 
     OutlinedTextField(
-        value = textState.value,
+        value = value,
         onValueChange = {
-            if (it.text.length <= maxLength) onValueChange(it.text)
+            if (it.length <= maxLength) onValueChange(it)
         },
         modifier = modifier,
         enabled = enabled,

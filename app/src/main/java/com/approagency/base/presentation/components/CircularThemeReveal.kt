@@ -54,23 +54,32 @@ fun CircularThemeReveal(
     }
 
     LaunchedEffect(state.requestId) {
-        if (state.targetDarkTheme == isDarkTheme) return@LaunchedEffect
+        if (state.targetDarkTheme == isDarkTheme) {
+            return@LaunchedEffect
+        }
+
+        val targetDarkTheme = state.targetDarkTheme
+        val startProgress = if (targetDarkTheme) 1f else 0f
+        val endProgress = if (targetDarkTheme) 0f else 1f
 
         snapshot = state.graphicsLayer.toImageBitmap()
         state.isAnimating = true
-        progress.snapTo(0f)
-        onTransitionStart(state.targetDarkTheme)
-        onThemeChange(state.targetDarkTheme)
+        progress.snapTo(startProgress)
+
+        onTransitionStart(targetDarkTheme)
+        onThemeChange(targetDarkTheme)
+
         progress.animateTo(
-            targetValue = 1f,
+            targetValue = endProgress,
             animationSpec = tween(
                 durationMillis = durationMillis,
                 easing = easing
             )
         )
+
         snapshot = null
         state.isAnimating = false
-        onTransitionEnd(state.targetDarkTheme)
+        onTransitionEnd(targetDarkTheme)
     }
 
     Box(
@@ -87,40 +96,64 @@ fun CircularThemeReveal(
                     state.graphicsLayer.record {
                         this@drawWithContent.drawContent()
                     }
+
                     drawLayer(state.graphicsLayer)
                 }
         ) {
             content(state)
         }
 
-        Canvas(Modifier.matchParentSize()) {
+        Canvas(
+            modifier = Modifier.matchParentSize()
+        ) {
             val image = snapshot ?: return@Canvas
             val origin = state.origin
+
             val maximumRadius = maxOf(
                 hypot(origin.x, origin.y),
                 hypot(size.width - origin.x, origin.y),
                 hypot(origin.x, size.height - origin.y),
                 hypot(size.width - origin.x, size.height - origin.y)
             )
+
             val radius = maximumRadius * progress.value
+
             val path = Path().apply {
-                addOval(Rect(origin, radius))
+                addOval(
+                    Rect(
+                        center = origin,
+                        radius = radius
+                    )
+                )
             }
 
             drawIntoCanvas { canvas ->
                 canvas.save()
-                canvas.clipPath(path, ClipOp.Difference)
+
+                canvas.clipPath(
+                    path = path,
+                    clipOp = if (state.targetDarkTheme) {
+                        ClipOp.Intersect
+                    } else {
+                        ClipOp.Difference
+                    }
+                )
+
                 canvas.drawImageRect(
                     image = image,
-                    srcSize = IntSize(image.width, image.height),
+                    srcSize = IntSize(
+                        width = image.width,
+                        height = image.height
+                    ),
                     dstSize = IntSize(
-                        size.width.roundToInt(),
-                        size.height.roundToInt()
+                        width = size.width.roundToInt(),
+                        height = size.height.roundToInt()
                     ),
                     paint = Paint().apply {
                         alpha = overlayAlpha
                     }
                 )
+
                 canvas.restore()
             }
         }

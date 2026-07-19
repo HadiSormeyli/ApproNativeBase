@@ -29,7 +29,7 @@ fun PullToRefresh(
     state: PullToRefreshState = rememberPullToRefreshState(),
     indicatorAlignment: Alignment = Alignment.TopCenter,
     indicatorContainerColor: Color = MaterialTheme.colorScheme.primaryContainer,
-    indicatorColor: Color = MaterialTheme.colorScheme.primary,
+    indicatorColor: Color = MaterialTheme.colorScheme.onPrimary,
     indicator: @Composable BoxScope.(
         state: PullToRefreshState,
         isRefreshing: Boolean

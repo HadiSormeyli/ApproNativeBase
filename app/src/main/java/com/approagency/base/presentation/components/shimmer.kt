@@ -21,7 +21,7 @@ fun ShimmerText(
     width: Dp = 56.dp,
     height: Dp = 16.dp,
     shape: Shape = MaterialTheme.shapes.small,
-    colors: List<Color> = defaultShimmerColors().text
+    colors: List<Color> = shimmerColors().text
 ) {
     Box(
         modifier = modifier
@@ -36,7 +36,7 @@ fun ShimmerImage(
     modifier: Modifier = Modifier,
     size: Dp = 120.dp,
     shape: Shape = MaterialTheme.shapes.medium,
-    colors: List<Color> = defaultShimmerColors().image
+    colors: List<Color> = shimmerColors().image
 ) {
     Box(
         modifier = modifier
@@ -50,7 +50,7 @@ fun ShimmerImage(
 fun ShimmerContainer(
     modifier: Modifier = Modifier,
     shape: Shape = MaterialTheme.shapes.medium,
-    colors: List<Color> = defaultShimmerColors().image
+    colors: List<Color> = shimmerColors().image
 ) {
     Box(
         modifier = modifier
@@ -64,7 +64,7 @@ fun ShimmerIcon(
     modifier: Modifier = Modifier,
     size: Dp = 32.dp,
     shape: Shape = MaterialTheme.shapes.medium,
-    colors: List<Color> = defaultShimmerColors().image
+    colors: List<Color> = shimmerColors().image
 ) {
     Box(
         modifier = modifier
@@ -79,7 +79,7 @@ fun ShimmerIconButton(
     modifier: Modifier = Modifier,
     size: Dp = 48.dp,
     shape: Shape = MaterialTheme.shapes.large,
-    colors: List<Color> = defaultShimmerColors().image
+    colors: List<Color> = shimmerColors().image
 ) {
     Box(
         modifier = modifier
@@ -90,7 +90,7 @@ fun ShimmerIconButton(
 }
 
 @Composable
-fun defaultShimmerColors(): ShimmerColors {
+fun shimmerColors(): ShimmerColors {
     val color = MaterialTheme.colorScheme.surfaceVariant
 
     return koinInject<ApproConfig>().shimmerColors ?: ShimmerColors(
