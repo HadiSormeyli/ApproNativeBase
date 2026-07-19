@@ -16,10 +16,10 @@ class ApproTokenInterceptor(
         val token = runBlocking {
             sessionManager.getSession()?.approToken
         }
-
         val request = chain.request()
             .newBuilder()
             .apply {
+                addHeader("Accept", "application/json")
                 if (!token.isNullOrBlank()) {
                     addHeader(
                         "Authorization",

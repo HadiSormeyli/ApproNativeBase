@@ -188,7 +188,7 @@ fun CustomOutlinedTextField(
 fun OtpTextField(
     otpText: String,
     onOtpTextChange: (String, Boolean) -> Unit,
-    onComplete: () -> Unit,
+    onComplete: (String) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     otpCount: Int = 5,
@@ -217,7 +217,7 @@ fun OtpTextField(
         if (otpText.length == otpCount && completedOtp != otpText) {
             completedOtp = otpText
             focusManager.clearFocus()
-            onComplete()
+            onComplete(otpText)
         } else if (otpText.length < otpCount) {
             completedOtp = null
         }

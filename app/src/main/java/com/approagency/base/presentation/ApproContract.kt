@@ -28,6 +28,7 @@ class ApproContract {
         ) : Event()
 
         data object ResetLoginState : Event()
+        data object EditPhoneNumber : Event()
         data object ResetPurchaseState : Event()
         data class SendFCMToken(val token: String) : Event()
     }

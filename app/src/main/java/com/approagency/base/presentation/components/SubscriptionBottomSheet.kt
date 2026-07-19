@@ -41,10 +41,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.approagency.base.model.ui.UiState
 import com.approagency.base.model.session.Session
 import com.approagency.base.model.ui.AuthStep
 import com.approagency.base.model.ui.SubscriptionBottomSheetText
+import com.approagency.base.model.ui.UiState
 import com.approagency.base.model.user.Product
 import com.approagency.base.model.user.toPaymentRequest
 import com.approagency.base.presentation.ApproContract
@@ -134,7 +134,7 @@ fun SubscriptionBottomSheet(
                 },
                 onEditPhone = {
                     approViewModel.setEvent(
-                        ApproContract.Event.ResetLoginState
+                        ApproContract.Event.EditPhoneNumber
                     )
                 },
                 onRulesClick = onRulesClick
@@ -205,8 +205,6 @@ fun LoginSheetContent(
 
     LaunchedEffect(Unit) {
         otpAutoFillBus.codes.collect { code ->
-            onOtpChange(code)
-
             if (code.isNotBlank()) {
                 onCheckOtp(code)
             }
@@ -217,7 +215,6 @@ fun LoginSheetContent(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         when (step) {
@@ -296,13 +293,12 @@ fun LoginSheetContent(
                 )
 
                 OtpTextField(
+                    modifier = Modifier.fillMaxWidth(),
                     otpText = otp,
                     onOtpTextChange = { value, _ ->
                         onOtpChange(value)
                     },
-                    onComplete = {
-                        onCheckOtp(otp.trim())
-                    },
+                    onComplete = onCheckOtp,
                     enabled = !isCheckingOtp
                 )
 

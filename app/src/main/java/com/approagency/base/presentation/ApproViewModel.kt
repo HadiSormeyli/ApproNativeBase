@@ -3,11 +3,11 @@ package com.approagency.base.presentation
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.viewModelScope
 import com.approagency.base.config.ApproConfig
-import com.approagency.base.model.ui.UiState
 import com.approagency.base.model.network.Failure
 import com.approagency.base.model.network.Resource
 import com.approagency.base.model.session.Session
 import com.approagency.base.model.ui.AuthStep
+import com.approagency.base.model.ui.UiState
 import com.approagency.base.network.repository.ApproRepository
 import com.approagency.base.paymnet.PaymentRequest
 import com.approagency.base.paymnet.PaymentService
@@ -35,6 +35,17 @@ class ApproViewModel(
             )
 
             ApproContract.Event.ResetLoginState -> resetAuthStates()
+            ApproContract.Event.EditPhoneNumber -> {
+                setState {
+                    copy(
+                        step = AuthStep.Phone,
+                        loginState = UiState.Idle(),
+                        otpState = UiState.Idle(),
+                        otp = ""
+                    )
+                }
+            }
+
             ApproContract.Event.ResetPurchaseState -> resetPurchaseState()
             is ApproContract.Event.CheckOtp -> checkOtp(
                 event.phoneNumber,
