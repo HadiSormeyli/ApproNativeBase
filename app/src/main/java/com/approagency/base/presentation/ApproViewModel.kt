@@ -207,7 +207,6 @@ class ApproViewModel(
                             )
                         }
                         sessionManager.login(session)
-                        getProducts()
                         checkStatus()
                     }
                 }

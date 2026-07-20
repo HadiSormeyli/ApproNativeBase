@@ -87,6 +87,14 @@ fun SubscriptionBottomSheet(
         }
     }
 
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            approViewModel.setEvent(
+                ApproContract.Event.GetProducts
+            )
+        }
+    }
+
     ApproModalBottomSheet(
         title = if (isLoggedIn) {
             text.subscriptionTitle
