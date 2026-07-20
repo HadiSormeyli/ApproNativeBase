@@ -14,7 +14,7 @@ object ApproConstants {
     const val WRITE_TIMEOUT = 240L
     const val OTP_COUNT = 5
 
-    const val SHIMMER_ANIMATION_DURATION = 300
+    const val SHIMMER_ANIMATION_DURATION = 1500
 
     const val FIREBASE_TITLE = "title"
     const val FIREBASE_DESCRIPTION = "description"

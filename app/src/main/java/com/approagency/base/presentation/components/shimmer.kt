@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.approagency.base.config.ApproConfig
-import com.approagency.base.model.ui.ShimmerColors
+import com.approagency.base.model.ui.ShimmerConfig
 import com.approagency.base.utils.shimmerLoadingAnimation
 import org.koin.compose.koinInject
 
@@ -21,13 +21,14 @@ fun ShimmerText(
     width: Dp = 56.dp,
     height: Dp = 16.dp,
     shape: Shape = MaterialTheme.shapes.small,
-    colors: List<Color> = shimmerColors().text
+    shimmerConfig: ShimmerConfig = shimmerConfig(),
+    colors: List<Color> = shimmerConfig.text
 ) {
     Box(
         modifier = modifier
             .size(width, height)
             .clip(shape)
-            .shimmerLoadingAnimation(colors)
+            .shimmerLoadingAnimation(colors, durationMillis = shimmerConfig.animationDuration)
     )
 }
 
@@ -36,13 +37,14 @@ fun ShimmerImage(
     modifier: Modifier = Modifier,
     size: Dp = 120.dp,
     shape: Shape = MaterialTheme.shapes.medium,
-    colors: List<Color> = shimmerColors().image
+    shimmerConfig: ShimmerConfig = shimmerConfig(),
+    colors: List<Color> = shimmerConfig.image
 ) {
     Box(
         modifier = modifier
             .size(size)
             .clip(shape)
-            .shimmerLoadingAnimation(colors)
+            .shimmerLoadingAnimation(colors, durationMillis = shimmerConfig.animationDuration)
     )
 }
 
@@ -50,12 +52,13 @@ fun ShimmerImage(
 fun ShimmerContainer(
     modifier: Modifier = Modifier,
     shape: Shape = MaterialTheme.shapes.medium,
-    colors: List<Color> = shimmerColors().image
+    shimmerConfig: ShimmerConfig = shimmerConfig(),
+    colors: List<Color> = shimmerConfig.image
 ) {
     Box(
         modifier = modifier
             .clip(shape)
-            .shimmerLoadingAnimation(colors)
+            .shimmerLoadingAnimation(colors, durationMillis = shimmerConfig.animationDuration)
     )
 }
 
@@ -64,13 +67,14 @@ fun ShimmerIcon(
     modifier: Modifier = Modifier,
     size: Dp = 32.dp,
     shape: Shape = MaterialTheme.shapes.medium,
-    colors: List<Color> = shimmerColors().image
+    shimmerConfig: ShimmerConfig = shimmerConfig(),
+    colors: List<Color> = shimmerConfig.image
 ) {
     Box(
         modifier = modifier
             .size(size)
             .clip(shape)
-            .shimmerLoadingAnimation(colors)
+            .shimmerLoadingAnimation(colors, durationMillis = shimmerConfig.animationDuration)
     )
 }
 
@@ -79,21 +83,22 @@ fun ShimmerIconButton(
     modifier: Modifier = Modifier,
     size: Dp = 48.dp,
     shape: Shape = MaterialTheme.shapes.large,
-    colors: List<Color> = shimmerColors().image
+    shimmerConfig: ShimmerConfig = shimmerConfig(),
+    colors: List<Color> = shimmerConfig.image
 ) {
     Box(
         modifier = modifier
             .size(size)
             .clip(shape)
-            .shimmerLoadingAnimation(colors)
+            .shimmerLoadingAnimation(colors, durationMillis = shimmerConfig.animationDuration)
     )
 }
 
 @Composable
-fun shimmerColors(): ShimmerColors {
+fun shimmerConfig(): ShimmerConfig {
     val color = MaterialTheme.colorScheme.surfaceDim
 
-    return koinInject<ApproConfig>().shimmerColors ?: ShimmerColors(
+    return koinInject<ApproConfig>().shimmerConfig ?: ShimmerConfig(
         image = listOf(
             color.copy(alpha = 0.3f),
             color.copy(alpha = 0.5f),
@@ -107,6 +112,6 @@ fun shimmerColors(): ShimmerColors {
             color.copy(alpha = 0.5f),
             color.copy(alpha = 0.3f),
             color.copy(alpha = 0.1f)
-        )
+        ),
     )
 }

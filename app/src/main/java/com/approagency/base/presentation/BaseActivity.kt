@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import com.approagency.base.config.ApproConfig
+import com.approagency.base.firebase.FirebaseManager
 import com.approagency.base.local.preference.PreferencesHelper
 import com.approagency.base.model.ui.ApproSnackBarVisuals
 import com.approagency.base.model.ui.SnackBarType
@@ -36,6 +37,7 @@ import com.approagency.base.session.SessionManager
 import com.approagency.base.theme.ApproTheme
 import com.approagency.base.theme.ThemeManager
 import com.approagency.base.utils.DeepLinkManager
+import com.approagency.base.utils.NotificationHelper
 import com.approagency.base.utils.OtpAutoFillBus
 import com.approagency.base.utils.OtpAutofillController
 import com.google.android.gms.auth.api.phone.SmsRetriever
@@ -56,9 +58,6 @@ abstract class BaseActivity : ComponentActivity(), OtpAutofillController {
 
     val drawerState = DrawerState(DrawerValue.Closed)
 
-    val approViewModel: ApproViewModel by viewModel()
-
-    private val otpAutoFillBus: OtpAutoFillBus by inject()
     private var otpSmsReceiver: BroadcastReceiver? = null
     private val smsConsentLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -72,10 +71,14 @@ abstract class BaseActivity : ComponentActivity(), OtpAutofillController {
     protected var showSubscriptionBottomSheet by mutableStateOf(false)
     protected var showTermsBottomSheet by mutableStateOf(false)
 
+    protected val otpAutoFillBus: OtpAutoFillBus by inject()
+    val approViewModel: ApproViewModel by viewModel()
     val sessionManager: SessionManager by inject()
     val themeManager: ThemeManager by inject()
     val config: ApproConfig by inject()
     val deepLinkManager: DeepLinkManager by inject()
+    val firebaseManager: FirebaseManager by inject()
+    val notificationHelper: NotificationHelper by inject()
 
     var language: String = config.defaultLocale.language
 

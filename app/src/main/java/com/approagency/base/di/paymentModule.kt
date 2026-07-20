@@ -13,7 +13,7 @@ val paymentModule = module {
         val config = get<ApproConfig>()
 
         when (config.flavor) {
-            Flavor.BAZAAR -> BazaarPaymentService(
+            Flavor.BAZAR -> BazaarPaymentService(
                 config = config, sessionDao = get(), service = get()
             )
 

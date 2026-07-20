@@ -9,7 +9,7 @@ import androidx.compose.runtime.ProvidedValue
 import androidx.compose.ui.graphics.Color
 import androidx.core.net.toUri
 import com.approagency.base.model.ui.LegalConfig
-import com.approagency.base.model.ui.ShimmerColors
+import com.approagency.base.model.ui.ShimmerConfig
 import com.approagency.base.theme.ApproShapes
 import com.approagency.base.theme.ApproTypography
 import com.approagency.base.theme.ThemeMode
@@ -35,7 +35,7 @@ data class ApproConfig(
     val darkColorSchema: ColorScheme = createDarkColorScheme(Color(0xFFD0BCFF)),
     val typography: Typography = ApproTypography,
     val shapes: Shapes = ApproShapes,
-    val shimmerColors: ShimmerColors? = null,
+    val shimmerConfig: ShimmerConfig? = null,
     val defaultThemeMode: ThemeMode = ThemeMode.SYSTEM,
     val providers: @Composable (isDarkMode: Boolean) -> Array<ProvidedValue<*>> = { emptyArray() },
     val extra: Map<String, Any?> = emptyMap()
@@ -61,6 +61,6 @@ data class ApproConfig(
     }
 
     fun isMyket() = flavor == Flavor.MYKET
-    fun isBazaar() = flavor == Flavor.BAZAAR
+    fun isBazaar() = flavor == Flavor.BAZAR
     fun isGooglePlay() = flavor == Flavor.GOOGLE_PLAY
 }

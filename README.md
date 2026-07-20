@@ -22,7 +22,7 @@ Add the library to `build.gradle.kts (:app)`:
 
 ```kotlin
 dependencies {
-    implementation("com.github.HadiSormeyli:ApproNativeBase:v1.1.5")
+    implementation("com.github.HadiSormeyli:ApproNativeBase:v1.1.9")
 }
 ```
 
@@ -70,13 +70,13 @@ android {
     flavorDimensions += "store"
 
     productFlavors {
-        create("bazaar") {
+        create("bazar") {
             dimension = "store"
 
             buildConfigField(
                 "String",
                 "FLAVOR_NAME",
-                "\"BAZAAR\""
+                "\"BAZAR\""
             )
 
             buildConfigField(

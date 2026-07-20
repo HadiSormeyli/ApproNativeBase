@@ -4,8 +4,8 @@ package com.approagency.base.config
 enum class Flavor(
     val englishLabel: String, val persianLabel: String, val gateway: String
 ) {
-    BAZAAR(
-        englishLabel = "Bazaar",
+    BAZAR(
+        englishLabel = "Bazar",
         persianLabel = "بازار",
         gateway = "cafe"
     ),
@@ -24,9 +24,10 @@ enum class Flavor(
         fun fromString(value: String?): Flavor {
             return entries.firstOrNull {
                 it.name.equals(value, true) ||
+                        it.gateway.equals(value, true) ||
                         it.englishLabel.equals(value, true) ||
                         it.persianLabel.equals(value, true)
-            } ?: BAZAAR
+            } ?: BAZAR
         }
     }
 }
