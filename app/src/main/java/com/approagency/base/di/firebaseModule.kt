@@ -45,9 +45,12 @@ fun firebaseModule(
             notificationHelper = get(),
             approConfig = get(),
             repository = get(),
-            config = get()
+            config = get(),
+            sessionManager = get()
         ).apply {
-            initialize()
+            check(initialize()) {
+                "FirebaseManager initialization failed"
+            }
         }
     }
 }

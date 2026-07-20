@@ -190,15 +190,9 @@ class App : Application() {
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-   
+
     <application android:name=".App" android:allowBackup="true" android:label="@string/app_name"
         android:supportsRtl="true" android:theme="@style/Theme.YourApplication">
-        <service android:name="com.approagency.base.firebase.ApproFirebaseMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
         <activity android:name=".MainActivity" android:exported="true"
             android:launchMode="singleTop">
             <intent-filter>
@@ -210,7 +204,7 @@ class App : Application() {
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:host="example.com" />
-                <data android:scheme="example" />
+                <data android:scheme="myapp" />
             </intent-filter>
         </activity>
     </application>

@@ -17,13 +17,13 @@ object Appro {
         deepLinkParser: DeepLinkParser? = null,
         appModules: List<Module> = emptyList()
     ): KoinApplication {
-        val hasDeepLinkScheme =
+        val hasDeepLink =
             config.deepLinks.isNotEmpty() && config.deepLink.isNotEmpty()
         val hasDeepLinkParser = deepLinkParser != null
 
-        require(hasDeepLinkScheme == hasDeepLinkParser) {
+        require(hasDeepLink == hasDeepLinkParser) {
             when {
-                hasDeepLinkScheme -> "DeepLinkParser is required when deepLink is specified"
+                hasDeepLink -> "DeepLinkParser is required when deepLink is specified"
                 else -> "deepLink is required when DeepLinkParser is specified"
             }
         }

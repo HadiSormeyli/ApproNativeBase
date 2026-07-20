@@ -65,7 +65,7 @@ fun SubscriptionBottomSheet(
     onDismiss: () -> Unit = {},
     modifier: Modifier = Modifier,
     text: SubscriptionBottomSheetText = remember { SubscriptionBottomSheetText() },
-    onRulesClick: () -> Unit,
+    onRulesClick: () -> Unit = {},
     sessionId: String = Session.ID,
     otpCount: Int = ApproConstants.OTP_COUNT
 ) {
@@ -340,7 +340,10 @@ fun LoginSheetContent(
         SimpleTextButton(
             text = text.rules,
             modifier = Modifier.fillMaxWidth(),
-            onClick = onRulesClick
+            onClick ={
+                activity.showTermsBottomSheet()
+                onRulesClick()
+            }
         )
     }
 }

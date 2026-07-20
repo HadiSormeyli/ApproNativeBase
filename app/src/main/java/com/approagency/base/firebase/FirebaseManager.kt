@@ -12,6 +12,8 @@ import com.approagency.base.config.ApproConfig
 import com.approagency.base.config.ApproConstants
 import com.approagency.base.model.ui.notification.NotificationRequest
 import com.approagency.base.network.repository.ApproRepository
+import com.approagency.base.session.SessionManager
+import com.approagency.base.session.SessionState
 import com.approagency.base.utils.NotificationHelper
 import com.approagency.base.utils.awaitCompletion
 import com.approagency.base.utils.awaitResult
@@ -22,6 +24,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
@@ -31,20 +34,25 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.atomic.AtomicBoolean
 
-
 class FirebaseManager(
     context: Context,
     private val approConfig: ApproConfig,
     private val repository: ApproRepository,
     private val notificationHelper: NotificationHelper,
-    private val config: FirebaseConfig
+    private val config: FirebaseConfig,
+    private val sessionManager: SessionManager
 ) {
     private val context = context.applicationContext
 
@@ -53,18 +61,24 @@ class FirebaseManager(
     )
 
     private val initialized = AtomicBoolean(false)
+    private val tokenMutex = Mutex()
+
+    private var sessionJob: Job? = null
 
     private val _token = MutableStateFlow<String?>(null)
     val token: StateFlow<String?> = _token.asStateFlow()
 
     private val _messages = MutableSharedFlow<FirebaseMessage>(
-        replay = 1,
+        replay = 0,
         extraBufferCapacity = 2,
         onBufferOverflow = BufferOverflow.DROP_LATEST
     )
 
     val messages: SharedFlow<FirebaseMessage> =
         _messages.asSharedFlow()
+
+    private val isLoggedIn: Boolean
+        get() = sessionManager.state.value is SessionState.Login
 
     fun initialize(): Boolean {
         if (initialized.get()) {
@@ -76,7 +90,7 @@ class FirebaseManager(
             ?: return false
 
         FirebaseMessaging.getInstance()
-            .isAutoInitEnabled = config.autoInitEnabled
+            .isAutoInitEnabled = false
 
         notificationHelper.createChannelGroup(
             config.channelGroup
@@ -89,50 +103,143 @@ class FirebaseManager(
         )
 
         initialized.set(true)
-        refreshToken()
+
+        observeSession()
 
         return true
     }
 
+    private fun observeSession() {
+        sessionJob?.cancel()
+
+        sessionJob = scope.launch {
+            sessionManager.state
+                .map { state ->
+                    state is SessionState.Login
+                }
+                .distinctUntilChanged()
+                .collectLatest { loggedIn ->
+                    if (loggedIn) {
+                        activateForLoggedInUser()
+                    } else {
+                        deactivateForLoggedOutUser()
+                    }
+                }
+        }
+    }
+
+    private suspend fun activateForLoggedInUser() {
+        tokenMutex.withLock {
+            if (!isLoggedIn) {
+                return
+            }
+
+            ensureInitialized()
+
+            val messaging = FirebaseMessaging.getInstance()
+
+            if (!config.autoInitEnabled) {
+                messaging.isAutoInitEnabled = false
+                _token.value = null
+                return
+            }
+
+            messaging.isAutoInitEnabled = true
+
+            val newToken = runCatching {
+                messaging.token.awaitResult()
+            }.getOrNull() ?: return
+
+            if (!isLoggedIn) {
+                messaging.isAutoInitEnabled = false
+
+                runCatching {
+                    messaging.deleteToken().awaitCompletion()
+                }
+
+                _token.value = null
+                return
+            }
+
+            _token.value = newToken
+
+            repository.sendFCMToken(
+                token = newToken,
+                packageName = approConfig.packageName
+            ).collect { }
+
+            if (isLoggedIn) {
+                config.onTokenChanged(newToken)
+            }
+        }
+    }
+
+    private suspend fun deactivateForLoggedOutUser() {
+        tokenMutex.withLock {
+            if (!initialized.get()) {
+                _token.value = null
+                return
+            }
+
+            val messaging = FirebaseMessaging.getInstance()
+
+            messaging.isAutoInitEnabled = false
+
+            _token.value = null
+
+            runCatching {
+                messaging.deleteToken().awaitCompletion()
+            }
+        }
+    }
+
     suspend fun getToken(): String {
         ensureInitialized()
+        requireLoggedIn()
 
-        val token = FirebaseMessaging.getInstance()
-            .token
-            .awaitResult()
+        val messaging = FirebaseMessaging.getInstance()
 
-        _token.value = token
+        if (!config.autoInitEnabled) {
+            error("Firebase messaging auto initialization is disabled")
+        }
 
-        return token
+        messaging.isAutoInitEnabled = true
+
+        val newToken = messaging.token.awaitResult()
+
+        requireLoggedIn()
+
+        _token.value = newToken
+
+        return newToken
     }
 
     fun refreshToken() {
         scope.launch {
-            runCatching {
-                getToken()
+            if (isLoggedIn) {
+                activateForLoggedInUser()
             }
         }
     }
 
     suspend fun deleteToken() {
-        ensureInitialized()
-
-        FirebaseMessaging.getInstance()
-            .deleteToken()
-            .awaitCompletion()
-
-        _token.value = null
+        deactivateForLoggedOutUser()
     }
 
-    suspend fun subscribeToTopic(topic: String) {
+    suspend fun subscribeToTopic(
+        topic: String
+    ) {
         ensureInitialized()
+        requireLoggedIn()
 
         FirebaseMessaging.getInstance()
             .subscribeToTopic(topic)
             .awaitCompletion()
     }
 
-    suspend fun unsubscribeFromTopic(topic: String) {
+    suspend fun unsubscribeFromTopic(
+        topic: String
+    ) {
         ensureInitialized()
 
         FirebaseMessaging.getInstance()
@@ -159,32 +266,38 @@ class FirebaseManager(
     fun showNotification(
         message: FirebaseMessage
     ) {
-        scope.launch {
-            showFirebaseNotification(message)
+        if (!isLoggedIn) {
+            return
         }
-    }
-
-    internal fun handleNewToken(token: String) {
-        _token.value = token
 
         scope.launch {
-            launch {
-                repository.sendFCMToken(token, approConfig.packageName).collect { }
+            if (isLoggedIn) {
+                showFirebaseNotification(message)
             }
-
-            config.onTokenChanged(token)
         }
     }
 
-    internal fun handleMessage(
+    fun handleMessage(
         remoteMessage: RemoteMessage
     ) {
+        if (!isLoggedIn) {
+            return
+        }
+
         val message = remoteMessage.toFirebaseMessage()
 
         _messages.tryEmit(message)
 
         scope.launch {
+            if (!isLoggedIn) {
+                return@launch
+            }
+
             config.onMessageReceived(message)
+
+            if (!isLoggedIn) {
+                return@launch
+            }
 
             if (!config.notificationFilter(message)) {
                 return@launch
@@ -196,19 +309,62 @@ class FirebaseManager(
                 config.showBackgroundNotifications
             }
 
-            if (shouldShow) {
+            if (shouldShow && isLoggedIn) {
                 showFirebaseNotification(message)
             }
         }
     }
 
+    fun handleNewToken(
+        token: String
+    ) {
+        scope.launch {
+            tokenMutex.withLock {
+                if (
+                    !isLoggedIn ||
+                    !config.autoInitEnabled
+                ) {
+                    FirebaseMessaging.getInstance()
+                        .isAutoInitEnabled = false
+
+                    _token.value = null
+
+                    runCatching {
+                        FirebaseMessaging.getInstance()
+                            .deleteToken()
+                            .awaitCompletion()
+                    }
+
+                    return@withLock
+                }
+
+                _token.value = token
+
+                repository.sendFCMToken(
+                    token = token,
+                    packageName = approConfig.packageName
+                ).collect { }
+
+                if (isLoggedIn) {
+                    config.onTokenChanged(token)
+                }
+            }
+        }
+    }
+
     fun close() {
+        sessionJob?.cancel()
+        sessionJob = null
         scope.cancel()
     }
 
     private suspend fun showFirebaseNotification(
         message: FirebaseMessage
     ) {
+        if (!isLoggedIn) {
+            return
+        }
+
         val title = message.title
             ?: config.defaultTitle
             ?: context.applicationInfo
@@ -223,6 +379,10 @@ class FirebaseManager(
                 }.getOrNull()
             }
 
+        if (!isLoggedIn) {
+            return
+        }
+
         val style = if (image != null) {
             NotificationCompat.BigPictureStyle()
                 .bigPicture(image)
@@ -231,6 +391,10 @@ class FirebaseManager(
         } else {
             NotificationCompat.BigTextStyle()
                 .bigText(message.description)
+        }
+
+        if (!isLoggedIn) {
+            return
         }
 
         notificationHelper.show(
@@ -260,12 +424,14 @@ class FirebaseManager(
             Intent.FLAG_ACTIVITY_CLEAR_TOP or
                     Intent.FLAG_ACTIVITY_SINGLE_TOP
 
-        message.data[ApproConstants.FIREBASE_LINK]?.let { link ->
-            launchIntent.putExtra(
-                ApproConstants.LINK,
-                link
-            )
-        }
+        message.data[ApproConstants.FIREBASE_LINK]
+            ?.takeIf(String::isNotBlank)
+            ?.let { link ->
+                launchIntent.putExtra(
+                    ApproConstants.LINK,
+                    link
+                )
+            }
 
         launchIntent.putExtra(
             ApproConstants.DATA,
@@ -309,6 +475,12 @@ class FirebaseManager(
             } finally {
                 connection.disconnect()
             }
+        }
+    }
+
+    private fun requireLoggedIn() {
+        check(isLoggedIn) {
+            "User must be logged in to use Firebase messaging"
         }
     }
 

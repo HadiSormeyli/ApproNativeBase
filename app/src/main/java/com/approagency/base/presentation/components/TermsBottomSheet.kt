@@ -24,12 +24,13 @@ import com.approagency.base.R
 import com.approagency.base.config.ApproConfig
 import com.approagency.base.model.ui.LegalConfig
 import com.approagency.base.model.ui.LegalSection
+import com.approagency.base.theme.LocalBaseActivity
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TermsBottomSheet(
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit = {},
     modifier: Modifier = Modifier,
     legalConfig: LegalConfig = koinInject<ApproConfig>().legalConfig,
     title: String = stringResource(R.string.rules),
@@ -74,9 +75,14 @@ fun TermsBottomSheet(
         )
     }
 ) {
+    val activity = LocalBaseActivity.current
+
     ApproModalBottomSheet(
         title = title,
-        onDismiss = onDismiss
+        onDismiss = {
+            activity.hideTermsBottomSheet()
+            onDismiss()
+        }
     ) {
         Column(
             modifier = modifier.fillMaxWidth()
