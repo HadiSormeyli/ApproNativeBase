@@ -24,6 +24,7 @@ data class ApproConfig(
     val versionName: String,
     val versionCode: Int,
     val debug: Boolean,
+    val logEnabled: Boolean = debug,
     val storeLink: String? = null,
     val deepLink: String = "",
     val legalConfig: LegalConfig,

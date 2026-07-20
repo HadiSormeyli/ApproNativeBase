@@ -5,6 +5,7 @@ import com.approagency.base.config.ApproConfig
 import com.approagency.base.local.preference.PreferencesHelper
 import com.approagency.base.model.ui.deepLink.DeepLinkParser
 import com.approagency.base.utils.DeepLinkManager
+import com.approagency.base.utils.Logger
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
@@ -29,7 +30,9 @@ object Appro {
         }
 
         return startKoin {
-            PreferencesHelper.init(
+            Logger.initialize(config)
+
+            PreferencesHelper.initialize(
                 context = application,
                 applicationPackageName = config.packageName
             )

@@ -340,7 +340,7 @@ fun LoginSheetContent(
         SimpleTextButton(
             text = text.rules,
             modifier = Modifier.fillMaxWidth(),
-            onClick ={
+            onClick = {
                 activity.showTermsBottomSheet()
                 onRulesClick()
             }

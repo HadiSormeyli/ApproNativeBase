@@ -22,7 +22,7 @@ Add the library to `build.gradle.kts (:app)`:
 
 ```kotlin
 dependencies {
-    implementation("com.github.HadiSormeyli:ApproNativeBase:v1.1.3")
+    implementation("com.github.HadiSormeyli:ApproNativeBase:v1.1.5")
 }
 ```
 

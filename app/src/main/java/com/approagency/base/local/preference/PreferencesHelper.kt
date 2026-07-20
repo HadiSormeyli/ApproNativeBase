@@ -13,18 +13,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 
 object PreferencesHelper {
-
-
     private lateinit var dataStore: DataStore<Preferences>
 
     val isInitialized: Boolean
         get() = ::dataStore.isInitialized
 
-    fun init(
+    fun initialize(
         context: Context,
         applicationPackageName: String
     ) {
-        if (::dataStore.isInitialized) return
+        if (isInitialized) return
 
         dataStore = PreferenceDataStoreFactory.create {
             context.preferencesDataStoreFile(
@@ -39,8 +37,8 @@ object PreferencesHelper {
     }
 
     fun <T> write(key: Preferences.Key<T>, value: T) {
-        check(::dataStore.isInitialized) {
-            "PreferencesHelper.init() must be called before using PreferencesHelper"
+        check(isInitialized) {
+            "PreferencesHelper.initialize() must be called before using PreferencesHelper"
         }
 
         runBlocking {
@@ -51,8 +49,8 @@ object PreferencesHelper {
     }
 
     fun <T> read(key: Preferences.Key<T>): T? {
-        check(::dataStore.isInitialized) {
-            "PreferencesHelper.init() must be called before using PreferencesHelper"
+        check(isInitialized) {
+            "PreferencesHelper.initialize() must be called before using PreferencesHelper"
         }
 
         return runBlocking {
@@ -63,8 +61,8 @@ object PreferencesHelper {
     }
 
     fun <T> read(key: Preferences.Key<T>, defaultValue: T): T {
-        check(::dataStore.isInitialized) {
-            "PreferencesHelper.init() must be called before using PreferencesHelper"
+        check(isInitialized) {
+            "PreferencesHelper.initialize() must be called before using PreferencesHelper"
         }
 
         return runBlocking {
@@ -78,8 +76,8 @@ object PreferencesHelper {
         key: Preferences.Key<T>,
         defaultValue: T
     ): Flow<T> {
-        check(::dataStore.isInitialized) {
-            "PreferencesHelper.init() must be called before using PreferencesHelper"
+        check(isInitialized) {
+            "PreferencesHelper.initialize() must be called before using PreferencesHelper"
         }
 
         return dataStore.data.map {
@@ -90,8 +88,8 @@ object PreferencesHelper {
     suspend fun remove(
         key: Preferences.Key<*>
     ) {
-        check(::dataStore.isInitialized) {
-            "PreferencesHelper.init() must be called before using PreferencesHelper"
+        check(isInitialized) {
+            "PreferencesHelper.initialize() must be called before using PreferencesHelper"
         }
 
         dataStore.edit {

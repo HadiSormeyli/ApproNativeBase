@@ -14,6 +14,7 @@ import com.approagency.base.model.ui.notification.NotificationRequest
 import com.approagency.base.network.repository.ApproRepository
 import com.approagency.base.session.SessionManager
 import com.approagency.base.session.SessionState
+import com.approagency.base.utils.Logger
 import com.approagency.base.utils.NotificationHelper
 import com.approagency.base.utils.awaitCompletion
 import com.approagency.base.utils.awaitResult
@@ -61,15 +62,16 @@ class FirebaseManager(
     )
 
     private val initialized = AtomicBoolean(false)
-    private val tokenMutex = Mutex()
+    private val tokenSyncMutex = Mutex()
 
     private var sessionJob: Job? = null
+    private var lastSubmittedToken: String? = null
 
     private val _token = MutableStateFlow<String?>(null)
     val token: StateFlow<String?> = _token.asStateFlow()
 
     private val _messages = MutableSharedFlow<FirebaseMessage>(
-        replay = 0,
+        replay = 1,
         extraBufferCapacity = 2,
         onBufferOverflow = BufferOverflow.DROP_LATEST
     )
@@ -82,12 +84,27 @@ class FirebaseManager(
 
     fun initialize(): Boolean {
         if (initialized.get()) {
+            Logger.debug(
+                TAG,
+                "FirebaseManager already initialized"
+            )
+
             return true
         }
 
-        FirebaseApp.getApps(context).firstOrNull()
+        val firebaseApp = FirebaseApp
+            .getApps(context)
+            .firstOrNull()
             ?: FirebaseApp.initializeApp(context)
-            ?: return false
+
+        if (firebaseApp == null) {
+            Logger.error(
+                TAG,
+                "FirebaseApp initialization failed"
+            )
+
+            return false
+        }
 
         FirebaseMessaging.getInstance()
             .isAutoInitEnabled = false
@@ -104,6 +121,11 @@ class FirebaseManager(
 
         initialized.set(true)
 
+        Logger.info(
+            TAG,
+            "FirebaseManager initialized package=${approConfig.packageName}"
+        )
+
         observeSession()
 
         return true
@@ -119,6 +141,11 @@ class FirebaseManager(
                 }
                 .distinctUntilChanged()
                 .collectLatest { loggedIn ->
+                    Logger.info(
+                        TAG,
+                        "Session changed loggedIn=$loggedIn"
+                    )
+
                     if (loggedIn) {
                         activateForLoggedInUser()
                     } else {
@@ -129,56 +156,143 @@ class FirebaseManager(
     }
 
     private suspend fun activateForLoggedInUser() {
-        tokenMutex.withLock {
+        ensureInitialized()
+
+        if (!isLoggedIn) {
+            Logger.warning(
+                TAG,
+                "FCM activation ignored because user is logged out"
+            )
+
+            return
+        }
+
+        if (!config.autoInitEnabled) {
+            FirebaseMessaging.getInstance()
+                .isAutoInitEnabled = false
+
+            Logger.warning(
+                TAG,
+                "FCM activation ignored because autoInitEnabled=false"
+            )
+
+            return
+        }
+
+        val messaging = FirebaseMessaging.getInstance()
+
+        messaging.isAutoInitEnabled = true
+
+        Logger.info(
+            TAG,
+            "FCM enabled for logged-in user"
+        )
+
+        val currentToken = runCatching {
+            messaging.token.awaitResult()
+        }.onFailure { throwable ->
+            Logger.error(
+                tag = TAG,
+                message = "Failed to retrieve FCM token",
+                throwable = throwable
+            )
+        }.getOrNull() ?: return
+
+        if (!isLoggedIn) {
+            Logger.warning(
+                TAG,
+                "User logged out while retrieving FCM token"
+            )
+
+            return
+        }
+
+        submitToken(
+            token = currentToken,
+            source = "session_login"
+        )
+    }
+
+    private suspend fun submitToken(
+        token: String,
+        source: String
+    ) {
+        tokenSyncMutex.withLock {
             if (!isLoggedIn) {
-                return
+                Logger.warning(
+                    TAG,
+                    "Token submission ignored because user is logged out source=$source"
+                )
+
+                return@withLock
             }
-
-            ensureInitialized()
-
-            val messaging = FirebaseMessaging.getInstance()
 
             if (!config.autoInitEnabled) {
-                messaging.isAutoInitEnabled = false
-                _token.value = null
-                return
+                Logger.warning(
+                    TAG,
+                    "Token submission ignored because FCM is disabled source=$source"
+                )
+
+                return@withLock
             }
 
-            messaging.isAutoInitEnabled = true
+            _token.value = token
 
-            val newToken = runCatching {
-                messaging.token.awaitResult()
-            }.getOrNull() ?: return
+            if (lastSubmittedToken == token) {
+                Logger.debug(
+                    TAG,
+                    "Duplicate token skipped source=$source token=${Logger.maskToken(token)}"
+                )
 
-            if (!isLoggedIn) {
-                messaging.isAutoInitEnabled = false
+                return@withLock
+            }
 
-                runCatching {
-                    messaging.deleteToken().awaitCompletion()
+            lastSubmittedToken = token
+
+            Logger.info(
+                TAG,
+                "Submitting FCM token source=$source token=${Logger.maskToken(token)}"
+            )
+
+            try {
+                repository.sendFCMToken(
+                    token = token,
+                    packageName = approConfig.packageName
+                ).collect { result ->
+                    Logger.debug(
+                        TAG,
+                        "FCM token backend result=$result"
+                    )
                 }
 
-                _token.value = null
-                return
-            }
+                Logger.info(
+                    TAG,
+                    "FCM token request completed token=${Logger.maskToken(token)}"
+                )
 
-            _token.value = newToken
+                if (isLoggedIn) {
+                    config.onTokenChanged(token)
+                }
+            } catch (throwable: Throwable) {
+                if (lastSubmittedToken == token) {
+                    lastSubmittedToken = null
+                }
 
-            repository.sendFCMToken(
-                token = newToken,
-                packageName = approConfig.packageName
-            ).collect { }
-
-            if (isLoggedIn) {
-                config.onTokenChanged(newToken)
+                Logger.error(
+                    tag = TAG,
+                    message = "FCM token submission failed source=$source",
+                    throwable = throwable
+                )
             }
         }
     }
 
     private suspend fun deactivateForLoggedOutUser() {
-        tokenMutex.withLock {
+        tokenSyncMutex.withLock {
             if (!initialized.get()) {
                 _token.value = null
-                return
+                lastSubmittedToken = null
+                return@withLock
             }
 
             val messaging = FirebaseMessaging.getInstance()
@@ -186,38 +300,68 @@ class FirebaseManager(
             messaging.isAutoInitEnabled = false
 
             _token.value = null
+            lastSubmittedToken = null
+
+            Logger.info(
+                TAG,
+                "FCM disabled for logged-out user"
+            )
 
             runCatching {
-                messaging.deleteToken().awaitCompletion()
+                messaging
+                    .deleteToken()
+                    .awaitCompletion()
+            }.onSuccess {
+                Logger.info(
+                    TAG,
+                    "Local FCM token deleted"
+                )
+            }.onFailure { throwable ->
+                Logger.error(
+                    tag = TAG,
+                    message = "Failed to delete local FCM token",
+                    throwable = throwable
+                )
             }
         }
     }
 
     suspend fun getToken(): String {
         ensureInitialized()
-        requireLoggedIn()
+
+        check(isLoggedIn) {
+            "User must be logged in before requesting an FCM token"
+        }
+
+        check(config.autoInitEnabled) {
+            "Firebase messaging is disabled"
+        }
 
         val messaging = FirebaseMessaging.getInstance()
 
-        if (!config.autoInitEnabled) {
-            error("Firebase messaging auto initialization is disabled")
-        }
-
         messaging.isAutoInitEnabled = true
 
-        val newToken = messaging.token.awaitResult()
+        val currentToken = messaging
+            .token
+            .awaitResult()
 
-        requireLoggedIn()
+        submitToken(
+            token = currentToken,
+            source = "manual_get_token"
+        )
 
-        _token.value = newToken
-
-        return newToken
+        return currentToken
     }
 
     fun refreshToken() {
         scope.launch {
             if (isLoggedIn) {
                 activateForLoggedInUser()
+            } else {
+                Logger.warning(
+                    TAG,
+                    "Token refresh ignored because user is logged out"
+                )
             }
         }
     }
@@ -230,11 +374,19 @@ class FirebaseManager(
         topic: String
     ) {
         ensureInitialized()
-        requireLoggedIn()
+
+        check(isLoggedIn) {
+            "User must be logged in before subscribing to a topic"
+        }
 
         FirebaseMessaging.getInstance()
             .subscribeToTopic(topic)
             .awaitCompletion()
+
+        Logger.info(
+            TAG,
+            "Subscribed to topic=$topic"
+        )
     }
 
     suspend fun unsubscribeFromTopic(
@@ -245,16 +397,33 @@ class FirebaseManager(
         FirebaseMessaging.getInstance()
             .unsubscribeFromTopic(topic)
             .awaitCompletion()
+
+        Logger.info(
+            TAG,
+            "Unsubscribed from topic=$topic"
+        )
     }
 
     fun requestNotificationPermission(
         activity: Activity
     ) {
+        Logger.info(
+            TAG,
+            "Requesting notification permission"
+        )
+
         notificationHelper.requestPermission(activity)
     }
 
     fun hasNotificationPermission(): Boolean {
-        return notificationHelper.hasPermission()
+        val granted = notificationHelper.hasPermission()
+
+        Logger.debug(
+            TAG,
+            "Notification permission granted=$granted"
+        )
+
+        return granted
     }
 
     fun openNotificationSettings() {
@@ -267,20 +436,79 @@ class FirebaseManager(
         message: FirebaseMessage
     ) {
         if (!isLoggedIn) {
+            Logger.warning(
+                TAG,
+                "Manual notification ignored because user is logged out"
+            )
+
             return
         }
 
         scope.launch {
-            if (isLoggedIn) {
-                showFirebaseNotification(message)
-            }
+            showFirebaseNotification(message)
         }
     }
 
-    fun handleMessage(
+    internal fun handleNewToken(
+        token: String
+    ) {
+        Logger.info(
+            TAG,
+            "New FCM token received loggedIn=$isLoggedIn token=${Logger.maskToken(token)}"
+        )
+
+        scope.launch {
+            if (!isLoggedIn) {
+                FirebaseMessaging.getInstance()
+                    .isAutoInitEnabled = false
+
+                _token.value = null
+
+                Logger.warning(
+                    TAG,
+                    "New FCM token ignored because user is logged out"
+                )
+
+                return@launch
+            }
+
+            submitToken(
+                token = token,
+                source = "on_new_token"
+            )
+        }
+    }
+
+    internal fun handleMessage(
         remoteMessage: RemoteMessage
     ) {
+        val foreground = context.isAppForeground()
+
+        Logger.info(
+            TAG,
+            buildString {
+                append("FCM message received")
+                append(" id=")
+                append(remoteMessage.messageId)
+                append(" from=")
+                append(remoteMessage.from)
+                append(" loggedIn=")
+                append(isLoggedIn)
+                append(" foreground=")
+                append(foreground)
+                append(" data=")
+                append(remoteMessage.data)
+                append(" notificationPayload=")
+                append(remoteMessage.notification != null)
+            }
+        )
+
         if (!isLoggedIn) {
+            Logger.warning(
+                TAG,
+                "FCM message ignored because user is logged out"
+            )
+
             return
         }
 
@@ -290,65 +518,94 @@ class FirebaseManager(
 
         scope.launch {
             if (!isLoggedIn) {
+                Logger.warning(
+                    TAG,
+                    "FCM message cancelled because user logged out"
+                )
+
                 return@launch
             }
 
-            config.onMessageReceived(message)
+            runCatching {
+                config.onMessageReceived(message)
+            }.onFailure { throwable ->
+                Logger.error(
+                    tag = TAG,
+                    message = "onMessageReceived callback failed",
+                    throwable = throwable
+                )
+            }
 
             if (!isLoggedIn) {
                 return@launch
             }
 
-            if (!config.notificationFilter(message)) {
+            val accepted = runCatching {
+                config.notificationFilter(message)
+            }.onFailure { throwable ->
+                Logger.error(
+                    tag = TAG,
+                    message = "Notification filter failed",
+                    throwable = throwable
+                )
+            }.getOrDefault(false)
+
+            if (!accepted) {
+                Logger.warning(
+                    TAG,
+                    "FCM message rejected by notificationFilter"
+                )
+
                 return@launch
             }
 
-            val shouldShow = if (context.isAppForeground()) {
+            val appForeground = context.isAppForeground()
+
+            val shouldShow = if (appForeground) {
                 config.showForegroundNotifications
             } else {
                 config.showBackgroundNotifications
             }
 
-            if (shouldShow && isLoggedIn) {
-                showFirebaseNotification(message)
-            }
-        }
-    }
+            val permissionGranted =
+                notificationHelper.hasPermission()
 
-    fun handleNewToken(
-        token: String
-    ) {
-        scope.launch {
-            tokenMutex.withLock {
-                if (
-                    !isLoggedIn ||
-                    !config.autoInitEnabled
-                ) {
-                    FirebaseMessaging.getInstance()
-                        .isAutoInitEnabled = false
-
-                    _token.value = null
-
-                    runCatching {
-                        FirebaseMessaging.getInstance()
-                            .deleteToken()
-                            .awaitCompletion()
-                    }
-
-                    return@withLock
+            Logger.info(
+                TAG,
+                buildString {
+                    append("Notification decision")
+                    append(" foreground=")
+                    append(appForeground)
+                    append(" showForeground=")
+                    append(config.showForegroundNotifications)
+                    append(" showBackground=")
+                    append(config.showBackgroundNotifications)
+                    append(" shouldShow=")
+                    append(shouldShow)
+                    append(" permission=")
+                    append(permissionGranted)
                 }
+            )
 
-                _token.value = token
+            if (!shouldShow) {
+                Logger.warning(
+                    TAG,
+                    "Notification disabled for current app state"
+                )
 
-                repository.sendFCMToken(
-                    token = token,
-                    packageName = approConfig.packageName
-                ).collect { }
-
-                if (isLoggedIn) {
-                    config.onTokenChanged(token)
-                }
+                return@launch
             }
+
+            if (!permissionGranted) {
+                Logger.warning(
+                    TAG,
+                    "Notification not shown because permission is missing"
+                )
+
+                return@launch
+            }
+
+            showFirebaseNotification(message)
         }
     }
 
@@ -356,12 +613,31 @@ class FirebaseManager(
         sessionJob?.cancel()
         sessionJob = null
         scope.cancel()
+
+        Logger.info(
+            TAG,
+            "FirebaseManager closed"
+        )
     }
 
     private suspend fun showFirebaseNotification(
         message: FirebaseMessage
     ) {
         if (!isLoggedIn) {
+            Logger.warning(
+                TAG,
+                "Notification ignored because user is logged out"
+            )
+
+            return
+        }
+
+        if (!notificationHelper.hasPermission()) {
+            Logger.warning(
+                TAG,
+                "Notification not shown because permission is missing"
+            )
+
             return
         }
 
@@ -376,10 +652,21 @@ class FirebaseManager(
             ?.let { imageUrl ->
                 runCatching {
                     downloadBitmap(imageUrl)
+                }.onFailure { throwable ->
+                    Logger.warning(
+                        tag = TAG,
+                        message = "Failed to download notification image",
+                        throwable = throwable
+                    )
                 }.getOrNull()
             }
 
         if (!isLoggedIn) {
+            Logger.warning(
+                TAG,
+                "Notification cancelled because user logged out"
+            )
+
             return
         }
 
@@ -393,14 +680,14 @@ class FirebaseManager(
                 .bigText(message.description)
         }
 
-        if (!isLoggedIn) {
-            return
-        }
+        val requestedId =
+            message.data[ApproConstants.FIREBASE_ID]
+                ?.hashCode()
+                ?: System.currentTimeMillis().hashCode()
 
-        notificationHelper.show(
+        val shownId = notificationHelper.show(
             NotificationRequest(
-                id = message.data[ApproConstants.FIREBASE_ID]?.hashCode()
-                    ?: System.currentTimeMillis().hashCode(),
+                id = requestedId,
                 channelId = config.channel.id,
                 smallIcon = config.smallIcon,
                 title = title,
@@ -411,6 +698,18 @@ class FirebaseManager(
                 contentIntent = createContentIntent(message)
             )
         )
+
+        if (shownId == null) {
+            Logger.error(
+                TAG,
+                "NotificationHelper failed to show notification"
+            )
+        } else {
+            Logger.info(
+                TAG,
+                "Notification shown id=$shownId channel=${config.channel.id}"
+            )
+        }
     }
 
     private fun createContentIntent(
@@ -418,7 +717,14 @@ class FirebaseManager(
     ): PendingIntent? {
         val launchIntent = context.packageManager
             .getLaunchIntentForPackage(context.packageName)
-            ?: return null
+            ?: run {
+                Logger.error(
+                    TAG,
+                    "Application launch intent was not found"
+                )
+
+                return null
+            }
 
         launchIntent.flags =
             Intent.FLAG_ACTIVITY_CLEAR_TOP or
@@ -440,7 +746,8 @@ class FirebaseManager(
 
         return PendingIntent.getActivity(
             context,
-            message.data[ApproConstants.FIREBASE_ID]?.hashCode()
+            message.data[ApproConstants.FIREBASE_ID]
+                ?.hashCode()
                 ?: System.currentTimeMillis().hashCode(),
             launchIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or
@@ -466,6 +773,11 @@ class FirebaseManager(
                     HttpURLConnection.HTTP_OK until
                     HttpURLConnection.HTTP_MULT_CHOICE
                 ) {
+                    Logger.warning(
+                        TAG,
+                        "Notification image request failed code=${connection.responseCode}"
+                    )
+
                     return@withContext null
                 }
 
@@ -478,15 +790,13 @@ class FirebaseManager(
         }
     }
 
-    private fun requireLoggedIn() {
-        check(isLoggedIn) {
-            "User must be logged in to use Firebase messaging"
-        }
-    }
-
     private fun ensureInitialized() {
         check(initialize()) {
             "Firebase initialization failed"
         }
+    }
+
+    companion object {
+        private const val TAG = "ApproFirebase"
     }
 }
