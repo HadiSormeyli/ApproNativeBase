@@ -8,7 +8,7 @@ import com.approagency.base.model.network.Resource
 import com.approagency.base.network.service.ApproPrivateService
 import kotlinx.coroutines.flow.Flow
 
-class GooglePlayPaymentService(
+class MarketPaymentService(
     private val config: ApproConfig,
     private val sessionDao: SessionDao,
     private val service: ApproPrivateService,

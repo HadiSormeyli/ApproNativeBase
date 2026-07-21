@@ -19,7 +19,7 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-class MyketPaymentService(
+class MarketPaymentService(
     private val config: ApproConfig,
     private val sessionDao: SessionDao,
     private val service: ApproPrivateService,

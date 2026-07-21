@@ -17,15 +17,34 @@ android {
 
     defaultConfig {
         minSdk = 24
+        testInstrumentationRunner =
+            "androidx.test.runner.AndroidJUnitRunner"
+    }
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    flavorDimensions += "store"
+
+    productFlavors {
+        create("bazar") {
+            dimension = "store"
+        }
+
+        create("myket") {
+            dimension = "store"
+        }
+
+        create("googlePlay") {
+            dimension = "store"
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
+                getDefaultProguardFile(
+                    "proguard-android-optimize.txt"
+                ),
                 "proguard-rules.pro"
             )
         }
@@ -41,7 +60,16 @@ android {
     }
 
     publishing {
-        singleVariant("release") {
+        multipleVariants("default") {
+            includeBuildTypeValues("release")
+
+            includeFlavorDimensionAndValues(
+                "store",
+                "bazar",
+                "myket",
+                "googlePlay"
+            )
+
             withSourcesJar()
         }
     }
@@ -88,8 +116,8 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.koin.androidx.compose)
     implementation(libs.coil.compose)
-    implementation(libs.poolakey)
-    implementation(libs.myket.billing)
+    "bazarImplementation"(libs.poolakey)
+    "myketImplementation"(libs.myket.billing)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
 }
@@ -98,7 +126,7 @@ afterEvaluate {
     extensions.configure<PublishingExtension> {
         publications {
             create<MavenPublication>("release") {
-                from(project.components["release"])
+                from(project.components["default"])
 
                 groupId =
                     System.getenv("GROUP")

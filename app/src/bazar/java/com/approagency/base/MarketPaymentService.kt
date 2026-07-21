@@ -1,4 +1,4 @@
-package com.approagency.base.paymnet
+package com.approagency.base
 
 import androidx.activity.ComponentActivity
 import com.approagency.base.config.ApproConfig
@@ -7,6 +7,8 @@ import com.approagency.base.model.network.Failure
 import com.approagency.base.model.network.Resource
 import com.approagency.base.network.networkCall
 import com.approagency.base.network.service.ApproPrivateService
+import com.approagency.base.paymnet.PaymentRequest
+import com.approagency.base.paymnet.PaymentService
 import com.approagency.base.utils.isPackageInstalled
 import ir.cafebazaar.poolakey.Connection
 import ir.cafebazaar.poolakey.Payment
@@ -18,7 +20,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resumeWithException
 
-class BazaarPaymentService(
+class MarketPaymentService(
     private val config: ApproConfig,
     private val sessionDao: SessionDao,
     private val service: ApproPrivateService,
@@ -31,17 +33,17 @@ class BazaarPaymentService(
     ): Flow<Resource<String>> {
         return networkCall {
             if (!config.isPaymentAvailable) {
-                throw Failure.StoreUnavailable
+                throw Failure.Companion.StoreUnavailable
             }
 
             if (!activity.isPackageInstalled(marketPackageName)) {
-                throw Failure.InstallBazarApplication
+                throw Failure.Companion.InstallBazarApplication
             }
 
             val session = sessionDao.get(request.sessionId)
-                ?: throw Failure.Unauthorized
+                ?: throw Failure.Companion.Unauthorized
 
-            if (session.isPremium) throw Failure.HaveSubscription
+            if (session.isPremium) throw Failure.Companion.HaveSubscription
 
             val approToken = session.approToken
             val phoneNumber = session.phoneNumber
@@ -68,13 +70,13 @@ class BazaarPaymentService(
                 )
 
                 if (purchaseInfo.payload != payload) {
-                    throw Failure.PurchaseFailed
+                    throw Failure.Companion.PurchaseFailed
                 }
 
                 val token = purchaseInfo.purchaseToken
 
                 if (token.isBlank()) {
-                    throw Failure.PurchaseCancelled
+                    throw Failure.Companion.PurchaseCancelled
                 }
 
                 val response = service.subscribeProduct(
@@ -89,7 +91,7 @@ class BazaarPaymentService(
                 if (response.isSuccessful) {
                     "خرید با موفقیت انجام شد"
                 } else {
-                    throw Failure.PurchaseFailed
+                    throw Failure.Companion.PurchaseFailed
                 }
             } finally {
                 connection.disconnect()
@@ -111,7 +113,7 @@ class BazaarPaymentService(
                 connectionFailed { throwable ->
                     if (continuation.isActive) {
                         continuation.resumeWithException(
-                            Failure.PurchaseFailed
+                            Failure.Companion.PurchaseFailed
                         )
                     }
                 }
@@ -147,7 +149,7 @@ class BazaarPaymentService(
                 failedToBeginFlow { throwable ->
                     if (continuation.isActive) {
                         continuation.resumeWithException(
-                            Failure.PurchaseFailed
+                            Failure.Companion.PurchaseFailed
                         )
                     }
                 }
@@ -161,7 +163,7 @@ class BazaarPaymentService(
                 purchaseCanceled {
                     if (continuation.isActive) {
                         continuation.resumeWithException(
-                            Failure.PurchaseCancelled
+                            Failure.Companion.PurchaseCancelled
                         )
                     }
                 }
@@ -169,7 +171,7 @@ class BazaarPaymentService(
                 purchaseFailed { throwable ->
                     if (continuation.isActive) {
                         continuation.resumeWithException(
-                            Failure.PurchaseFailed
+                            Failure.Companion.PurchaseFailed
                         )
                     }
                 }
