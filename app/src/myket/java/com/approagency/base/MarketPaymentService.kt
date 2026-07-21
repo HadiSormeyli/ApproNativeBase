@@ -1,4 +1,4 @@
-package com.approagency.base.paymnet
+package com.approagency.base
 
 import android.app.Activity
 import androidx.activity.ComponentActivity
@@ -18,6 +18,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import com.approagency.base.paymnet.PaymentRequest
+import com.approagency.base.paymnet.PaymentService
 
 class MarketPaymentService(
     private val config: ApproConfig,
