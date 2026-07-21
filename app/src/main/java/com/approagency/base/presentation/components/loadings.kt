@@ -184,18 +184,19 @@ fun LoadingDialog(
     onDismissRequest: () -> Unit = {},
     dismissOnBackPress: Boolean = false,
     dismissOnClickOutside: Boolean = false,
-    shape: Shape = MaterialTheme.shapes.large,
+    shape: Shape = MaterialTheme.shapes.medium,
     containerColor: Color = MaterialTheme.colorScheme.surface,
     contentColor: Color = MaterialTheme.colorScheme.primary,
     border: BorderStroke? = BorderStroke(
         width = 1.dp,
         color = MaterialTheme.colorScheme.outlineVariant
     ),
-    contentPadding: PaddingValues = PaddingValues(24.dp),
+    contentPadding: PaddingValues = PaddingValues(16.dp),
     indicatorSize: Dp = 48.dp,
     strokeWidth: Dp = 4.dp
 ) {
     if (!isLoading) return
+
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
@@ -203,27 +204,23 @@ fun LoadingDialog(
             dismissOnClickOutside = dismissOnClickOutside
         )
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+        Surface(
+            modifier = modifier,
+            shape = shape,
+            color = containerColor,
+            contentColor = contentColor,
+            border = border
         ) {
-            Surface(
-                modifier = modifier,
-                shape = shape,
-                color = containerColor,
-                border = border
+            Box(
+                modifier = Modifier.padding(contentPadding),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier.padding(contentPadding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(indicatorSize),
-                        color = contentColor,
-                        strokeWidth = strokeWidth,
-                        strokeCap = StrokeCap.Round
-                    )
-                }
+                CircularProgressIndicator(
+                    modifier = Modifier.size(indicatorSize),
+                    color = contentColor,
+                    strokeWidth = strokeWidth,
+                    strokeCap = StrokeCap.Round
+                )
             }
         }
     }

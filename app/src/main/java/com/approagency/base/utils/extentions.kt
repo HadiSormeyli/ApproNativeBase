@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
@@ -34,14 +35,17 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.approagency.base.R
 import com.approagency.base.config.ApproConstants
 import com.approagency.base.firebase.FirebaseMessage
-import com.approagency.base.model.ui.UiText
 import com.approagency.base.model.ui.Icon
 import com.approagency.base.model.ui.Label
+import com.approagency.base.model.ui.UiText
 import com.approagency.base.model.ui.deepLink.DeepLinkInput
 import com.approagency.base.presentation.BaseActivity
+import com.approagency.base.session.SessionManager
+import com.approagency.base.session.SessionState
 import com.google.android.gms.tasks.Task
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -49,6 +53,8 @@ import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
 import okhttp3.TlsVersion
 import org.json.JSONObject
+import org.koin.compose.koinInject
+import org.koin.core.context.GlobalContext.get
 import retrofit2.Retrofit
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
@@ -346,4 +352,21 @@ fun PagerState.pageOffset(page: Int): Float {
     return abs(
         currentPage - page + currentPageOffsetFraction
     ).coerceIn(0f, 1f)
+}
+
+@Composable
+fun rememberIsUserPremium(
+    sessionManager: SessionManager = koinInject()
+): Boolean {
+    val state by sessionManager.state.collectAsStateWithLifecycle()
+
+    return (state as? SessionState.Login?)
+        ?.session
+        ?.isPremium == true
+}
+
+fun isUserPremium(): Boolean {
+    return get()
+        .get<SessionManager>()
+        .isPremium
 }

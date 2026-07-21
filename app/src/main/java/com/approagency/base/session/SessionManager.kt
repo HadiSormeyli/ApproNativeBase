@@ -50,7 +50,8 @@ class SessionManager(
                         firstName = session.firstName,
                         lastName = session.lastName,
                         createdAt = old?.createdAt ?: now,
-                        updatedAt = now
+                        updatedAt = now,
+                        isPremium = session.isPremium
                     )
                 )
 
@@ -58,6 +59,11 @@ class SessionManager(
             }
         }
     }
+
+    val isPremium: Boolean
+        get() = (_state.value as? SessionState.Login)
+            ?.session
+            ?.isPremium == true
 
     suspend fun updateTokens(
         id: String = Session.ID,
