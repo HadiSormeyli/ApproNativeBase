@@ -85,33 +85,45 @@ room {
 }
 
 dependencies {
+    api(libs.splash)
+
     api(libs.kotlinx.coroutines.core)
+
     api(libs.androidx.room.runtime)
-    api(libs.play.services.auth.api.phone)
-    api(libs.androidx.navigation.common.ktx)
     ksp(libs.androidx.room.compiler)
-    api(platform(libs.koin.bom))
-    api(libs.koin.android)
+
     api(libs.androidx.datastore.preferences)
+
+    api(libs.play.services.auth.api.phone)
+
+    api(libs.androidx.navigation.common.ktx)
+
+
     api(libs.retrofit)
     api(libs.retrofit.converter.gson)
     api(libs.okhttp)
     api(libs.okhttp.logging.interceptor)
+
     api(platform(libs.androidx.compose.bom))
     api(libs.androidx.compose.ui)
     api(libs.androidx.compose.material3)
     api(libs.androidx.compose.ui.tooling.preview)
     api(libs.androidx.activity.compose)
-    api(libs.koin.compose)
     api(libs.androidx.compose.runtime)
-    api(libs.splash)
     api(libs.androidx.compose.foundation)
     api(libs.androidx.compose.material.icons.extended)
     api(libs.androidx.navigation.compose)
+
+    api(platform(libs.koin.bom))
+    api(libs.koin.android)
     api(libs.koin.androidx.compose)
+    api(libs.koin.compose)
+
     api(libs.coil.compose)
+
     "bazarImplementation"(libs.poolakey)
     "myketImplementation"(libs.myket.billing)
+
     api(platform(libs.firebase.bom))
     api(libs.firebase.messaging)
 }
@@ -123,7 +135,7 @@ afterEvaluate {
                 from(components["bazarRelease"])
 
                 groupId = "com.github.HadiSormeyli"
-                artifactId = "ApproNativeBase-bazar"
+                artifactId = "bazar"
                 version = System.getenv("VERSION")
                     ?: "local"
 
@@ -139,7 +151,7 @@ afterEvaluate {
                 from(components["myketRelease"])
 
                 groupId = "com.github.HadiSormeyli"
-                artifactId = "ApproNativeBase-myket"
+                artifactId = "myket"
                 version = System.getenv("VERSION")
                     ?: "local"
 
@@ -155,7 +167,7 @@ afterEvaluate {
                 from(components["googlePlayRelease"])
 
                 groupId = "com.github.HadiSormeyli"
-                artifactId = "ApproNativeBase-googleplay"
+                artifactId = "googleplay"
                 version = System.getenv("VERSION")
                     ?: "local"
 
