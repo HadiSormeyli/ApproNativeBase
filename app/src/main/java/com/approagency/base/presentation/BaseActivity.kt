@@ -37,7 +37,7 @@ import com.approagency.base.session.SessionManager
 import com.approagency.base.theme.ApproTheme
 import com.approagency.base.theme.ThemeManager
 import com.approagency.base.utils.DeepLinkManager
-import com.approagency.base.utils.NotificationHelper
+import com.approagency.base.utils.NotificationManager
 import com.approagency.base.utils.OtpAutoFillBus
 import com.approagency.base.utils.OtpAutofillController
 import com.google.android.gms.auth.api.phone.SmsRetriever
@@ -78,7 +78,7 @@ abstract class BaseActivity : ComponentActivity(), OtpAutofillController {
     val config: ApproConfig by inject()
     val deepLinkManager: DeepLinkManager by inject()
     val firebaseManager: FirebaseManager by inject()
-    val notificationHelper: NotificationHelper by inject()
+    val notificationManager: NotificationManager by inject()
 
     var language: String = config.defaultLocale.language
 

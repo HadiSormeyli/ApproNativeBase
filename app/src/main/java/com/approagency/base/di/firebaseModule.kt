@@ -42,7 +42,7 @@ fun firebaseModule(
     single(createdAtStart = true) {
         FirebaseManager(
             context = androidContext(),
-            notificationHelper = get(),
+            notificationManager = get(),
             approConfig = get(),
             repository = get(),
             config = get(),

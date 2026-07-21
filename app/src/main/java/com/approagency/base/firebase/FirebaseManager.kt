@@ -15,7 +15,7 @@ import com.approagency.base.network.repository.ApproRepository
 import com.approagency.base.session.SessionManager
 import com.approagency.base.session.SessionState
 import com.approagency.base.utils.Logger
-import com.approagency.base.utils.NotificationHelper
+import com.approagency.base.utils.NotificationManager
 import com.approagency.base.utils.awaitCompletion
 import com.approagency.base.utils.awaitResult
 import com.approagency.base.utils.isAppForeground
@@ -51,7 +51,7 @@ class FirebaseManager(
     context: Context,
     private val approConfig: ApproConfig,
     private val repository: ApproRepository,
-    private val notificationHelper: NotificationHelper,
+    private val notificationManager: NotificationManager,
     private val config: FirebaseConfig,
     private val sessionManager: SessionManager
 ) {
@@ -109,11 +109,11 @@ class FirebaseManager(
         FirebaseMessaging.getInstance()
             .isAutoInitEnabled = false
 
-        notificationHelper.createChannelGroup(
+        notificationManager.createChannelGroup(
             config.channelGroup
         )
 
-        notificationHelper.createChannel(
+        notificationManager.createChannel(
             config.channel.copy(
                 groupId = config.channelGroup.id
             )
@@ -412,11 +412,11 @@ class FirebaseManager(
             "Requesting notification permission"
         )
 
-        notificationHelper.requestPermission(activity)
+        notificationManager.requestPermission(activity)
     }
 
     fun hasNotificationPermission(): Boolean {
-        val granted = notificationHelper.hasPermission()
+        val granted = notificationManager.hasPermission()
 
         Logger.debug(
             TAG,
@@ -428,7 +428,7 @@ class FirebaseManager(
 
     fun openNotificationSettings() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            notificationHelper.openNotificationSettings(context)
+            notificationManager.openNotificationSettings(context)
         }
     }
 
@@ -568,7 +568,7 @@ class FirebaseManager(
             }
 
             val permissionGranted =
-                notificationHelper.hasPermission()
+                notificationManager.hasPermission()
 
             Logger.info(
                 TAG,
@@ -632,7 +632,7 @@ class FirebaseManager(
             return
         }
 
-        if (!notificationHelper.hasPermission()) {
+        if (!notificationManager.hasPermission()) {
             Logger.warning(
                 TAG,
                 "Notification not shown because permission is missing"
@@ -685,7 +685,7 @@ class FirebaseManager(
                 ?.hashCode()
                 ?: System.currentTimeMillis().hashCode()
 
-        val shownId = notificationHelper.show(
+        val shownId = notificationManager.show(
             NotificationRequest(
                 id = requestedId,
                 channelId = config.channel.id,

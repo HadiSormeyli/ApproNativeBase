@@ -4,7 +4,7 @@ import com.approagency.base.config.ApproConfig
 import com.approagency.base.presentation.ApproViewModel
 import com.approagency.base.theme.ThemeManager
 import com.approagency.base.utils.DeepLinkManager
-import com.approagency.base.utils.NotificationHelper
+import com.approagency.base.utils.NotificationManager
 import com.approagency.base.utils.OtpAutoFillBus
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModelOf
@@ -22,7 +22,7 @@ val uiModule = module {
     }
 
     single {
-        NotificationHelper(
+        NotificationManager(
             context = androidContext()
         )
     }

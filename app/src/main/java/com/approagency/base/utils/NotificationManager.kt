@@ -25,7 +25,7 @@ import com.approagency.base.model.ui.notification.NotificationChannelGroupConfig
 import com.approagency.base.model.ui.notification.NotificationRequest
 import java.util.concurrent.atomic.AtomicInteger
 
-class NotificationHelper(
+class NotificationManager(
     context: Context
 ) {
     private val context = context.applicationContext
