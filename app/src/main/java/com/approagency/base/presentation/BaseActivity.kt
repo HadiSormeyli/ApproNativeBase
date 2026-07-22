@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
+import androidx.core.os.BundleCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import com.approagency.base.config.ApproConfig
@@ -213,7 +214,12 @@ abstract class BaseActivity : ComponentActivity(), OtpAutofillController {
             override fun onReceive(c: Context?, received: Intent?) {
                 if (received?.action != SmsRetriever.SMS_RETRIEVED_ACTION) return
                 val extras = received.extras ?: return
-                val status = extras.get(SmsRetriever.EXTRA_STATUS) as? Status ?: return
+                val status = BundleCompat.getParcelable(
+                    extras,
+                    SmsRetriever.EXTRA_STATUS,
+                    Status::class.java
+                ) ?: return
+
                 if (status.statusCode != CommonStatusCodes.SUCCESS) return
                 val consentIntent: Intent? =
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

@@ -1,11 +1,11 @@
 package com.approagency.base.network
 
 import android.os.Build
+import com.approagency.base.config.ApproConfig
 import com.approagency.base.config.ApproConstants
 import com.approagency.base.config.ApproConstants.CONNECT_TIMEOUT
 import com.approagency.base.config.ApproConstants.READ_TIMEOUT
 import com.approagency.base.config.ApproConstants.WRITE_TIMEOUT
-import com.approagency.base.config.ApproConfig
 import com.approagency.base.model.network.Failure
 import com.approagency.base.model.network.Resource
 import com.approagency.base.network.dto.ErrorDto
@@ -104,7 +104,7 @@ fun createPublicOkHttpClient(
         .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS)
         .writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS)
 
-    if (config.debug) client.addInterceptor(httpLoggingInterceptor)
+    if (config.logInterceptorEnable) client.addInterceptor(httpLoggingInterceptor)
 
     interceptors.forEach {
         client.addInterceptor(it)
@@ -128,7 +128,7 @@ fun createPrivateOkHttpClient(
 
     client.addInterceptor(approTokenInterceptor)
 
-    if (config.debug) client.addInterceptor(httpLoggingInterceptor)
+    if (config.logInterceptorEnable) client.addInterceptor(httpLoggingInterceptor)
 
     interceptors.forEach {
         client.addInterceptor(it)

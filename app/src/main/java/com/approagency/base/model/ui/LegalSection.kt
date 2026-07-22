@@ -17,10 +17,9 @@ data class LegalSection(
 
 @Immutable
 data class LegalConfig(
-    val appName: String,
-    val lastUpdated: String,
+    val lastUpdated: String? = null,
     val supportEmail: String = "approagency@gmail.com",
-    val intro: AnnotatedString = defaultLegalIntro(appName),
+    val intro: AnnotatedString? = null,
     val defaultSections: List<LegalSection> = defaultLegalSections(supportEmail),
     val customSections: List<LegalSection> = emptyList()
 ) {

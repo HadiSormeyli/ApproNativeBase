@@ -24,14 +24,15 @@ import com.approagency.base.R
 import com.approagency.base.config.ApproConfig
 import com.approagency.base.model.ui.LegalConfig
 import com.approagency.base.model.ui.LegalSection
+import com.approagency.base.model.ui.defaultLegalIntro
 import com.approagency.base.theme.LocalBaseActivity
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TermsBottomSheet(
-    onDismiss: () -> Unit = {},
     modifier: Modifier = Modifier,
+    onDismiss: () -> Unit = {},
     legalConfig: LegalConfig = koinInject<ApproConfig>().legalConfig,
     title: String = stringResource(R.string.rules),
     lastUpdatedPrefix: String = "آخرین به‌روزرسانی:",
@@ -99,7 +100,7 @@ fun TermsBottomSheet(
                 } else {
                     if (
                         showLastUpdated &&
-                        legalConfig.lastUpdated.isNotBlank()
+                        !legalConfig.lastUpdated.isNullOrBlank()
                     ) {
                         Text(
                             text = "$lastUpdatedPrefix ${legalConfig.lastUpdated}",
@@ -109,7 +110,7 @@ fun TermsBottomSheet(
                     }
 
                     Text(
-                        text = legalConfig.intro,
+                        text = legalConfig.intro ?: defaultLegalIntro(activity.config.appName),
                         style = introStyle,
                         color = textColor
                     )

@@ -15,9 +15,11 @@ import com.approagency.base.theme.ApproTypography
 import com.approagency.base.theme.ThemeMode
 import com.approagency.base.theme.createDarkColorScheme
 import com.approagency.base.theme.createLightColorScheme
+import okhttp3.logging.HttpLoggingInterceptor
 import java.util.Locale
 
 data class ApproConfig(
+    val appName: String,
     val packageName: String,
     val flavor: Flavor,
     val paymentRsaKey: String,
@@ -25,9 +27,11 @@ data class ApproConfig(
     val versionCode: Int,
     val debug: Boolean,
     val logEnabled: Boolean = debug,
+    val logInterceptorEnable: Boolean = debug,
+    val logInterceptorLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.BODY,
     val storeLink: String? = null,
     val deepLink: String = "",
-    val legalConfig: LegalConfig,
+    val legalConfig: LegalConfig = LegalConfig(),
     val deepLinks: List<String> = listOf(deepLink),
     val isPaymentAvailable: Boolean = paymentRsaKey.isNotEmpty(),
     val defaultLocale: Locale = Locale.forLanguageTag("fa-IR"),
@@ -40,7 +44,7 @@ data class ApproConfig(
     val providers: @Composable (isDarkMode: Boolean) -> Array<ProvidedValue<*>> = { emptyArray() },
     val extra: Map<String, Any?> = emptyMap()
 ) {
-    fun isInternalLink(uri: Uri): Boolean {
+    fun isDeepLink(uri: Uri): Boolean {
         return deepLinks
             .filter(String::isNotBlank)
             .any { link ->

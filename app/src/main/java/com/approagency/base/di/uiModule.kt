@@ -28,9 +28,7 @@ val uiModule = module {
     }
 
     single {
-        DeepLinkManager(
-            config = get()
-        )
+        DeepLinkManager()
     }
 
     viewModelOf(::ApproViewModel)

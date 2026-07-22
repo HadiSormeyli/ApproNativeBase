@@ -19,6 +19,8 @@ class ApproFirebaseMessagingService :
         )
     }
 
+    @Suppress("DEPRECATION")
+    @Deprecated("Deprecated in Java")
     override fun onNewToken(
         token: String
     ) {

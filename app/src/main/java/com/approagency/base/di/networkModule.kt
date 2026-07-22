@@ -15,7 +15,9 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
 
-val networkModule = module {
+fun networkModule(
+    logInterceptorLevel: HttpLoggingInterceptor.Level
+) = module {
     single {
         Gson()
     }
@@ -23,7 +25,7 @@ val networkModule = module {
     single {
         HttpLoggingInterceptor()
             .apply {
-                level = HttpLoggingInterceptor.Level.BODY
+                level = logInterceptorLevel
             }
     }
 

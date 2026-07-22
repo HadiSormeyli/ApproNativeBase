@@ -50,9 +50,7 @@ import java.util.concurrent.atomic.AtomicLong
  *
  * deepLinkManager.initialize(AppDeepLinkParser())
  */
-class DeepLinkManager(
-    private val config: ApproConfig
-) {
+class DeepLinkManager {
     private val eventId = AtomicLong(0)
 
     private var parser: DeepLinkParser? = null

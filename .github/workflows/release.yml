@@ -3,7 +3,7 @@ name: Create Release
 on:
   push:
     tags:
-      - "v*"
+      - "**"
 
 permissions:
   contents: write
@@ -26,25 +26,59 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x gradlew
 
-      - name: Build release AAR
-        run: ./gradlew clean assembleRelease
+      - name: Build all release AARs
+        run: ./gradlew clean :app:assembleRelease
 
-      - name: Create GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Prepare release AARs
+        shell: bash
         run: |
-          mapfile -t AARS < <(
-            find . \
-              -path "*/build/outputs/aar/*-release.aar" \
-              -type f
-          )
+          set -euo pipefail
 
-          if [ ${#AARS[@]} -eq 0 ]; then
-            echo "Release AAR was not found"
+          mkdir -p release-assets
+
+          BAZAR_AAR="$(find app/build/outputs/aar -type f -iname "*bazar*release*.aar" | head -n 1)"
+          MYKET_AAR="$(find app/build/outputs/aar -type f -iname "*myket*release*.aar" | head -n 1)"
+          GOOGLE_AAR="$(find app/build/outputs/aar -type f -iname "*googleplay*release*.aar" | head -n 1)"
+
+          if [[ -z "$BAZAR_AAR" ]]; then
+            echo "Bazaar AAR not found"
             exit 1
           fi
 
-          gh release create "${GITHUB_REF_NAME}" \
-            "${AARS[@]}" \
-            --title "${GITHUB_REF_NAME}" \
-            --generate-notes
+          if [[ -z "$MYKET_AAR" ]]; then
+            echo "Myket AAR not found"
+            exit 1
+          fi
+
+          if [[ -z "$GOOGLE_AAR" ]]; then
+            echo "Google Play AAR not found"
+            exit 1
+          fi
+
+          cp "$BAZAR_AAR" "release-assets/appro-base-bazar.aar"
+          cp "$MYKET_AAR" "release-assets/appro-base-myket.aar"
+          cp "$GOOGLE_AAR" "release-assets/appro-base-google-play.aar"
+
+          ls -la release-assets
+
+      - name: Create or update GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload \
+              "$GITHUB_REF_NAME" \
+              release-assets/appro-base-bazar.aar \
+              release-assets/appro-base-myket.aar \
+              release-assets/appro-base-google-play.aar \
+              --clobber
+          else
+            gh release create \
+              "$GITHUB_REF_NAME" \
+              release-assets/appro-base-bazar.aar \
+              release-assets/appro-base-myket.aar \
+              release-assets/appro-base-google-play.aar \
+              --title "$GITHUB_REF_NAME" \
+              --generate-notes
+          fi

@@ -11,6 +11,7 @@ data class Promotion(
     @SerializedName("action_text") val actionText: String,
     @SerializedName("url_myket") val urlMyket: String?,
     @SerializedName("url_bazzar") val urlBazzar: String?,
+    @SerializedName("url_google_play") val urlGooglePlay: String?,
     @SerializedName("url_site") val urlSite: String?,
     @SerializedName("is_active") val isActive: Boolean,
     @SerializedName("priority") val priority: Int,

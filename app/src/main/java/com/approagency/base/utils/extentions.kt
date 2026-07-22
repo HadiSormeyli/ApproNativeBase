@@ -36,9 +36,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.approagency.base.Hsl
 import com.approagency.base.R
 import com.approagency.base.config.ApproConstants
 import com.approagency.base.firebase.FirebaseMessage
+import com.approagency.base.model.TonalPalette
+import com.approagency.base.model.ui.GeneratedPalettes
 import com.approagency.base.model.ui.Icon
 import com.approagency.base.model.ui.Label
 import com.approagency.base.model.ui.UiText
@@ -63,6 +66,9 @@ import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 import kotlin.coroutines.resumeWithException
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.pow
 
 fun OkHttpClient.Builder.addSLLFactory(): OkHttpClient.Builder {
     val trustAllCerts = arrayOf<TrustManager>(
@@ -303,8 +309,7 @@ fun Context.isAppForeground(): Boolean {
 }
 
 fun Intent.toDeepLinkInput(): DeepLinkInput? {
-    val link = dataString
-        ?: getStringExtra(ApproConstants.LINK)
+    val link = getStringExtra(ApproConstants.LINK)
         ?: return null
 
     return DeepLinkInput(
@@ -369,4 +374,273 @@ fun isUserPremium(): Boolean {
     return get()
         .get<SessionManager>()
         .isPremium
+}
+
+fun Color.toOpaqueColor(): Color {
+    return Color(
+        red = red.coerceIn(0f, 1f),
+        green = green.coerceIn(0f, 1f),
+        blue = blue.coerceIn(0f, 1f),
+        alpha = 1f
+    )
+}
+
+fun hslToColor(
+    hue: Float,
+    saturation: Float,
+    lightness: Float
+): Color {
+    val h = ((hue % 360f) + 360f) % 360f
+    val s = saturation.coerceIn(0f, 1f)
+    val l = lightness.coerceIn(0f, 1f)
+
+    val chroma = (1f - abs(2f * l - 1f)) * s
+    val section = h / 60f
+    val x = chroma * (1f - abs(section % 2f - 1f))
+    val match = l - chroma / 2f
+
+    val rgb = when {
+        section < 1f -> Triple(chroma, x, 0f)
+        section < 2f -> Triple(x, chroma, 0f)
+        section < 3f -> Triple(0f, chroma, x)
+        section < 4f -> Triple(0f, x, chroma)
+        section < 5f -> Triple(x, 0f, chroma)
+        else -> Triple(chroma, 0f, x)
+    }
+
+    return Color(
+        red = (rgb.first + match).coerceIn(0f, 1f),
+        green = (rgb.second + match).coerceIn(0f, 1f),
+        blue = (rgb.third + match).coerceIn(0f, 1f),
+        alpha = 1f
+    )
+}
+
+fun lStarToRelativeLuminance(
+    lStar: Float
+): Float {
+    val value = lStar.coerceIn(0f, 100f)
+
+    return if (value > 8f) {
+        val result = (value + 16f) / 116f
+        result * result * result
+    } else {
+        value / 903.2963f
+    }
+}
+
+fun Float.toLinearRgb(): Float {
+    val channel = coerceIn(0f, 1f)
+
+    return if (channel <= 0.04045f) {
+        channel / 12.92f
+    } else {
+        ((channel + 0.055f) / 1.055f).pow(2.4f)
+    }
+}
+
+fun Color.relativeLuminance(): Float {
+    val linearRed = red.toLinearRgb()
+    val linearGreen = green.toLinearRgb()
+    val linearBlue = blue.toLinearRgb()
+
+    return (
+            0.2126f * linearRed +
+                    0.7152f * linearGreen +
+                    0.0722f * linearBlue
+            ).coerceIn(0f, 1f)
+}
+
+fun mixOpaque(
+    start: Color,
+    end: Color,
+    fraction: Float
+): Color {
+    val amount = fraction.coerceIn(0f, 1f)
+
+    return Color(
+        red = start.red + (end.red - start.red) * amount,
+        green = start.green + (end.green - start.green) * amount,
+        blue = start.blue + (end.blue - start.blue) * amount,
+        alpha = 1f
+    )
+}
+
+fun normalizeHue(
+    hue: Float
+): Float {
+    return ((hue % 360f) + 360f) % 360f
+}
+
+fun Color.toHsl(): Hsl {
+    val redValue = red.coerceIn(0f, 1f)
+    val greenValue = green.coerceIn(0f, 1f)
+    val blueValue = blue.coerceIn(0f, 1f)
+
+    val maximum = max(
+        redValue,
+        max(greenValue, blueValue)
+    )
+
+    val minimum = min(
+        redValue,
+        min(greenValue, blueValue)
+    )
+
+    val difference = maximum - minimum
+    val lightness = (maximum + minimum) / 2f
+
+    val saturation = if (difference == 0f) {
+        0f
+    } else {
+        difference / (1f - abs(2f * lightness - 1f))
+    }
+
+    val calculatedHue = when {
+        difference == 0f -> {
+            0f
+        }
+
+        maximum == redValue -> {
+            60f * (((greenValue - blueValue) / difference) % 6f)
+        }
+
+        maximum == greenValue -> {
+            60f * (((blueValue - redValue) / difference) + 2f)
+        }
+
+        else -> {
+            60f * (((redValue - greenValue) / difference) + 4f)
+        }
+    }
+
+    return Hsl(
+        hue = normalizeHue(calculatedHue),
+        saturation = saturation.coerceIn(0f, 1f),
+        lightness = lightness.coerceIn(0f, 1f)
+    )
+}
+
+
+fun Color.withTone(
+    tone: Float
+): Color {
+    val targetTone = tone.coerceIn(0f, 100f)
+
+    if (targetTone <= 0f) {
+        return Color.Black
+    }
+
+    if (targetTone >= 100f) {
+        return Color.White
+    }
+
+    val source = toOpaqueColor()
+    val sourceLuminance = source.relativeLuminance()
+    val targetLuminance = lStarToRelativeLuminance(targetTone)
+
+    if (abs(sourceLuminance - targetLuminance) < 0.00001f) {
+        return source
+    }
+
+    val destination = if (targetLuminance > sourceLuminance) {
+        Color.White
+    } else {
+        Color.Black
+    }
+
+    val shouldBrighten = targetLuminance > sourceLuminance
+
+    var minimum = 0f
+    var maximum = 1f
+
+    repeat(24) {
+        val fraction = (minimum + maximum) / 2f
+
+        val candidate = mixOpaque(
+            start = source,
+            end = destination,
+            fraction = fraction
+        )
+
+        val candidateLuminance = candidate.relativeLuminance()
+
+        if (shouldBrighten) {
+            if (candidateLuminance < targetLuminance) {
+                minimum = fraction
+            } else {
+                maximum = fraction
+            }
+        } else {
+            if (candidateLuminance > targetLuminance) {
+                minimum = fraction
+            } else {
+                maximum = fraction
+            }
+        }
+    }
+
+    return mixOpaque(
+        start = source,
+        end = destination,
+        fraction = (minimum + maximum) / 2f
+    )
+}
+
+fun generatePalettes(primaryColor: Color): GeneratedPalettes {
+    val opaquePrimary = primaryColor.toOpaqueColor()
+    val primaryHsl = opaquePrimary.toHsl()
+
+
+    val primarySaturation = primaryHsl.saturation.coerceIn(
+        minimumValue = 0.24f,
+        maximumValue = 0.90f
+    )
+
+    val primarySeed = hslToColor(
+        hue = primaryHsl.hue,
+        saturation = primarySaturation,
+        lightness = 0.50f
+    )
+
+    val secondarySeed = hslToColor(
+        hue = normalizeHue(primaryHsl.hue + 24f),
+        saturation = (primarySaturation * 0.55f).coerceIn(
+            minimumValue = 0.16f,
+            maximumValue = 0.50f
+        ),
+        lightness = 0.50f
+    )
+
+    val tertiarySeed = hslToColor(
+        hue = normalizeHue(primaryHsl.hue + 60f),
+        saturation = (primarySaturation * 0.75f).coerceIn(
+            minimumValue = 0.24f,
+            maximumValue = 0.68f
+        ),
+        lightness = 0.50f
+    )
+
+    val neutralSeed = hslToColor(
+        hue = primaryHsl.hue,
+        saturation = 0.035f,
+        lightness = 0.50f
+    )
+
+    val neutralVariantSeed = hslToColor(
+        hue = normalizeHue(primaryHsl.hue + 8f),
+        saturation = 0.09f,
+        lightness = 0.50f
+    )
+
+    val errorSeed = Color(0xFFB3261E)
+
+    return GeneratedPalettes(
+        primary = TonalPalette(primarySeed),
+        secondary = TonalPalette(secondarySeed),
+        tertiary = TonalPalette(tertiarySeed),
+        neutral = TonalPalette(neutralSeed),
+        neutralVariant = TonalPalette(neutralVariantSeed),
+        error = TonalPalette(errorSeed)
+    )
 }

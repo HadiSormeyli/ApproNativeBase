@@ -42,9 +42,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 
 class FirebaseManager(
@@ -189,6 +191,7 @@ class FirebaseManager(
         )
 
         val currentToken = runCatching {
+            @Suppress("DEPRECATION")
             messaging.token.awaitResult()
         }.onFailure { throwable ->
             Logger.error(
@@ -308,6 +311,7 @@ class FirebaseManager(
             )
 
             runCatching {
+                @Suppress("DEPRECATION")
                 messaging
                     .deleteToken()
                     .awaitCompletion()
@@ -341,6 +345,7 @@ class FirebaseManager(
 
         messaging.isAutoInitEnabled = true
 
+        @Suppress("DEPRECATION")
         val currentToken = messaging
             .token
             .awaitResult()
@@ -513,6 +518,15 @@ class FirebaseManager(
         }
 
         val message = remoteMessage.toFirebaseMessage()
+
+        if (!isAllowedForCurrentFlavor(message.data)) {
+            Logger.debug(
+                TAG,
+                "Firebase message ignored for flavor: ${approConfig.flavor}"
+            )
+
+            return
+        }
 
         _messages.tryEmit(message)
 
@@ -715,8 +729,24 @@ class FirebaseManager(
     private fun createContentIntent(
         message: FirebaseMessage
     ): PendingIntent? {
+        val selectedLink = resolveFirebaseLink(
+            data = message.data
+        )
+
+        val requestCode = message.data[
+            ApproConstants.FIREBASE_ID
+        ]?.hashCode()
+            ?: selectedLink?.hashCode()
+            ?: System.currentTimeMillis().hashCode()
+
+        val pendingIntentFlags =
+            PendingIntent.FLAG_UPDATE_CURRENT or
+                    PendingIntent.FLAG_IMMUTABLE
+
         val launchIntent = context.packageManager
-            .getLaunchIntentForPackage(context.packageName)
+            .getLaunchIntentForPackage(
+                context.packageName
+            )
             ?: run {
                 Logger.error(
                     TAG,
@@ -730,14 +760,10 @@ class FirebaseManager(
             Intent.FLAG_ACTIVITY_CLEAR_TOP or
                     Intent.FLAG_ACTIVITY_SINGLE_TOP
 
-        message.data[ApproConstants.FIREBASE_LINK]
-            ?.takeIf(String::isNotBlank)
-            ?.let { link ->
-                launchIntent.putExtra(
-                    ApproConstants.LINK,
-                    link
-                )
-            }
+        launchIntent.putExtra(
+            ApproConstants.LINK,
+            selectedLink
+        )
 
         launchIntent.putExtra(
             ApproConstants.DATA,
@@ -746,13 +772,121 @@ class FirebaseManager(
 
         return PendingIntent.getActivity(
             context,
-            message.data[ApproConstants.FIREBASE_ID]
-                ?.hashCode()
-                ?: System.currentTimeMillis().hashCode(),
+            requestCode,
             launchIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or
-                    PendingIntent.FLAG_IMMUTABLE
+            pendingIntentFlags
         )
+    }
+
+    private fun parseFirebaseFlavors(
+        rawValue: String
+    ): Set<String> {
+        val values = runCatching {
+            val jsonArray = JSONArray(rawValue)
+
+            buildList {
+                for (index in 0 until jsonArray.length()) {
+                    val value = jsonArray
+                        .optString(index)
+                        .trim()
+
+                    if (value.isNotBlank()) {
+                        add(value)
+                    }
+                }
+            }
+        }.getOrElse {
+            rawValue.split(
+                ",",
+                ";",
+                "|"
+            )
+        }
+
+        return values
+            .mapNotNull(::normalizeFirebaseFlavor)
+            .toSet()
+    }
+
+    private fun normalizeFirebaseFlavor(
+        value: String
+    ): String? {
+        return when (
+            value
+                .trim()
+                .uppercase(Locale.ROOT)
+                .replace("-", "_")
+                .replace(" ", "_")
+        ) {
+            "BAZAR",
+            "BAZAAR" -> "BAZAR"
+
+            "MYKET" -> "MYKET"
+
+            "GOOGLE_PLAY",
+            "GOOGLEPLAY" -> "GOOGLE_PLAY"
+
+            else -> null
+        }
+    }
+
+    private fun isAllowedForCurrentFlavor(
+        data: Map<String, String>
+    ): Boolean {
+        val rawFlavors = data[
+            ApproConstants.FIREBASE_FLAVORS
+        ]?.trim()
+
+        if (rawFlavors.isNullOrBlank()) {
+            return true
+        }
+
+        val allowedFlavors = parseFirebaseFlavors(
+            rawFlavors
+        )
+
+        if (allowedFlavors.isEmpty()) {
+            return true
+        }
+
+        val currentFlavor = when {
+            approConfig.isBazaar() -> "BAZAR"
+            approConfig.isMyket() -> "MYKET"
+            approConfig.isGooglePlay() -> "GOOGLE_PLAY"
+            else -> return false
+        }
+
+        return currentFlavor in allowedFlavors
+    }
+
+    private fun resolveFirebaseLink(
+        data: Map<String, String>
+    ): String? {
+        val flavorUrlKey = when {
+            approConfig.isBazaar() ->
+                ApproConstants.FIREBASE_URL_BAZAR
+
+            approConfig.isMyket() ->
+                ApproConstants.FIREBASE_URL_MYKET
+
+            approConfig.isGooglePlay() ->
+                ApproConstants.FIREBASE_URL_GOOGLE_PLAY
+
+            else -> null
+        }
+
+        val flavorUrl = flavorUrlKey
+            ?.let(data::get)
+            ?.trim()
+            ?.takeIf(String::isNotEmpty)
+
+        val fallbackLink = data[
+            ApproConstants.FIREBASE_LINK
+        ]
+            ?.trim()
+            ?.takeIf(String::isNotEmpty)
+
+        return flavorUrl ?: fallbackLink
     }
 
     private suspend fun downloadBitmap(

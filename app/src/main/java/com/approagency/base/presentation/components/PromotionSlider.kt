@@ -64,21 +64,18 @@ fun PromotionSliderState(
     },
     errorContent: (@Composable BoxScope.(onRetry: () -> Unit) -> Unit)? = { retry ->
         FilledTextButton(
-            text = stringResource(R.string.retry),
-            onClick = retry
+            text = stringResource(R.string.retry), onClick = retry
         )
     },
     emptyContent: (@Composable BoxScope.() -> Unit)? = null,
     sliderContent: @Composable (List<Promotion>) -> Unit = { promotions ->
         PromotionSlider(
-            items = promotions,
-            userScrollEnabled = userScrollEnabled
+            items = promotions, userScrollEnabled = userScrollEnabled
         )
     }
 ) {
     when (state) {
-        is UiState.Idle,
-        is UiState.Loading -> {
+        is UiState.Idle, is UiState.Loading -> {
             loadingContent?.let { content ->
                 Box(
                     modifier = modifier
@@ -148,8 +145,7 @@ fun PromotionSlider(
     onPromotionClick: ((Promotion) -> Unit)? = null,
     emptyContent: @Composable BoxScope.() -> Unit = {},
     promotionContent: @Composable ColumnScope.(
-        promotion: Promotion,
-        onClick: () -> Unit
+        promotion: Promotion, onClick: () -> Unit
     ) -> Unit = { promotion, onClick ->
         NetworkImage(
             imageUrl = promotion.imageUrl,
@@ -164,10 +160,8 @@ fun PromotionSlider(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    horizontal = 8.dp,
-                    vertical = 4.dp
-                ),
-            verticalAlignment = Alignment.CenterVertically
+                    horizontal = 8.dp, vertical = 4.dp
+                ), verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = promotion.title,
@@ -177,18 +171,15 @@ fun PromotionSlider(
             )
 
             FilledTextButton(
-                text = promotion.actionText,
-                onClick = onClick
+                text = promotion.actionText, onClick = onClick
             )
         }
     },
     indicator: @Composable (
-        pageCount: Int,
-        currentPage: Int
+        pageCount: Int, currentPage: Int
     ) -> Unit = { pageCount, currentPage ->
         PromotionSliderIndicator(
-            pageCount = pageCount,
-            currentPage = currentPage
+            pageCount = pageCount, currentPage = currentPage
         )
     }
 ) {
@@ -196,8 +187,7 @@ fun PromotionSlider(
 
     if (items.isEmpty()) {
         Box(
-            modifier = modifier.fillMaxWidth(),
-            content = emptyContent
+            modifier = modifier.fillMaxWidth(), content = emptyContent
         )
         return
     }
@@ -207,9 +197,7 @@ fun PromotionSlider(
     )
 
     val openPromotion = remember(
-        activity,
-        approConfig,
-        onPromotionClick
+        activity, approConfig, onPromotionClick
     ) {
         { promotion: Promotion ->
             if (onPromotionClick != null) {
@@ -217,20 +205,21 @@ fun PromotionSlider(
             } else {
                 val link = if (approConfig.isBazaar()) {
                     promotion.urlBazzar
-                } else {
+                } else if (approConfig.isMyket()) {
                     promotion.urlMyket
+                } else if (approConfig.isGooglePlay()) {
+                    promotion.urlGooglePlay
+                } else {
+                    promotion.urlSite
                 }
 
-                link?.let(activity::openLink)
+                (link ?: promotion.urlSite)?.let(activity::openLink)
             }
         }
     }
 
     LaunchedEffect(
-        autoScrollEnabled,
-        autoScrollDelay,
-        items.size,
-        pagerState
+        autoScrollEnabled, autoScrollDelay, items.size, pagerState
     ) {
         if (!autoScrollEnabled || items.size <= 1) {
             return@LaunchedEffect
@@ -261,42 +250,30 @@ fun PromotionSlider(
             val promotion = items[page]
             val pageOffset = pagerState.pageOffset(page)
 
-            Column(
-                modifier = Modifier
-                    .graphicsLayer {
-                        scaleX = lerp(
-                            inactiveScale,
-                            activeScale,
-                            1f - pageOffset
-                        )
-                        scaleY = lerp(
-                            inactiveScale,
-                            activeScale,
-                            1f - pageOffset
-                        )
-                        alpha = lerp(
-                            inactiveAlpha,
-                            activeAlpha,
-                            1f - pageOffset
-                        )
-                    }
-                    .shadow(
-                        elevation = itemElevation,
-                        shape = itemShape
+            Column(modifier = Modifier
+                .graphicsLayer {
+                    scaleX = lerp(
+                        inactiveScale, activeScale, 1f - pageOffset
                     )
-                    .background(
-                        color = itemBackgroundColor,
-                        shape = itemShape
+                    scaleY = lerp(
+                        inactiveScale, activeScale, 1f - pageOffset
                     )
-                    .clickable {
-                        openPromotion(promotion)
-                    }
-                    .fillMaxWidth()
-            ) {
-                promotionContent(
-                    promotion,
-                    { openPromotion(promotion) }
+                    alpha = lerp(
+                        inactiveAlpha, activeAlpha, 1f - pageOffset
+                    )
+                }
+                .shadow(
+                    elevation = itemElevation, shape = itemShape
                 )
+                .background(
+                    color = itemBackgroundColor, shape = itemShape
+                )
+                .clickable {
+                    openPromotion(promotion)
+                }
+                .fillMaxWidth()) {
+                promotionContent(
+                    promotion, { openPromotion(promotion) })
             }
         }
 
@@ -305,8 +282,7 @@ fun PromotionSlider(
                 modifier = Modifier.align(indicatorAlignment)
             ) {
                 indicator(
-                    items.size,
-                    pagerState.currentPage
+                    items.size, pagerState.currentPage
                 )
             }
         }
@@ -334,24 +310,19 @@ private fun PromotionSliderIndicator(
     Box(
         modifier = modifier
             .shadow(
-                elevation = elevation,
-                shape = containerShape
+                elevation = elevation, shape = containerShape
             )
             .background(
-                color = containerColor,
-                shape = containerShape
+                color = containerColor, shape = containerShape
             )
             .padding(
-                horizontal = horizontalPadding,
-                vertical = verticalPadding
-            ),
-        contentAlignment = Alignment.Center
+                horizontal = horizontalPadding, vertical = verticalPadding
+            ), contentAlignment = Alignment.Center
     ) {
         LazyRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(
-                spacing,
-                Alignment.CenterHorizontally
+                spacing, Alignment.CenterHorizontally
             )
         ) {
             items(pageCount) { page ->
@@ -362,8 +333,7 @@ private fun PromotionSliderIndicator(
                         selectedWidth
                     } else {
                         unselectedWidth
-                    },
-                    label = "promotionIndicatorWidth"
+                    }, label = "promotionIndicatorWidth"
                 )
 
                 Box(
@@ -375,8 +345,7 @@ private fun PromotionSliderIndicator(
                                 selectedColor
                             } else {
                                 unselectedColor
-                            },
-                            shape = indicatorShape
+                            }, shape = indicatorShape
                         )
                 )
             }
