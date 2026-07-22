@@ -42,7 +42,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -520,9 +519,19 @@ class FirebaseManager(
         val message = remoteMessage.toFirebaseMessage()
 
         if (!isAllowedForCurrentFlavor(message.data)) {
-            Logger.debug(
-                TAG,
-                "Firebase message ignored for flavor: ${approConfig.flavor}"
+            Logger.info(
+                tag = TAG,
+                message = buildString {
+                    append("FCM ignored. ")
+                    append("Current flavor=${approConfig.flavor}, ")
+                    append(
+                        "target=${
+                            message.data[
+                                ApproConstants.FIREBASE_FLAVOR
+                            ]
+                        }"
+                    )
+                }
             )
 
             return
@@ -757,7 +766,8 @@ class FirebaseManager(
             }
 
         launchIntent.flags =
-            Intent.FLAG_ACTIVITY_CLEAR_TOP or
+            Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
                     Intent.FLAG_ACTIVITY_SINGLE_TOP
 
         launchIntent.putExtra(
@@ -778,85 +788,52 @@ class FirebaseManager(
         )
     }
 
-    private fun parseFirebaseFlavors(
-        rawValue: String
-    ): Set<String> {
-        val values = runCatching {
-            val jsonArray = JSONArray(rawValue)
+    private fun isAllowedForCurrentFlavor(
+        data: Map<String, String>
+    ): Boolean {
+        val rawFlavor = data[
+            ApproConstants.FIREBASE_FLAVOR
+        ]?.trim()
 
-            buildList {
-                for (index in 0 until jsonArray.length()) {
-                    val value = jsonArray
-                        .optString(index)
-                        .trim()
-
-                    if (value.isNotBlank()) {
-                        add(value)
-                    }
-                }
-            }
-        }.getOrElse {
-            rawValue.split(
-                ",",
-                ";",
-                "|"
-            )
+        if (rawFlavor.isNullOrBlank()) {
+            return true
         }
 
-        return values
-            .mapNotNull(::normalizeFirebaseFlavor)
+        val allowedFlavors = rawFlavor
+            .split(",")
+            .mapNotNull { normalizeFlavor(it) }
             .toSet()
+
+        val currentFlavor = when {
+            approConfig.isMyket() -> "myket"
+            approConfig.isBazaar() -> "bazar"
+            approConfig.isGooglePlay() -> "googleplay"
+            else -> return false
+        }
+
+        return currentFlavor in allowedFlavors
     }
 
-    private fun normalizeFirebaseFlavor(
+    private fun normalizeFlavor(
         value: String
     ): String? {
         return when (
             value
                 .trim()
-                .uppercase(Locale.ROOT)
-                .replace("-", "_")
-                .replace(" ", "_")
+                .lowercase(Locale.ROOT)
+                .replace("_", "")
+                .replace("-", "")
+                .replace(" ", "")
         ) {
-            "BAZAR",
-            "BAZAAR" -> "BAZAR"
+            "myket" -> "myket"
 
-            "MYKET" -> "MYKET"
+            "bazar",
+            "bazaar" -> "bazar"
 
-            "GOOGLE_PLAY",
-            "GOOGLEPLAY" -> "GOOGLE_PLAY"
+            "googleplay" -> "googleplay"
 
             else -> null
         }
-    }
-
-    private fun isAllowedForCurrentFlavor(
-        data: Map<String, String>
-    ): Boolean {
-        val rawFlavors = data[
-            ApproConstants.FIREBASE_FLAVORS
-        ]?.trim()
-
-        if (rawFlavors.isNullOrBlank()) {
-            return true
-        }
-
-        val allowedFlavors = parseFirebaseFlavors(
-            rawFlavors
-        )
-
-        if (allowedFlavors.isEmpty()) {
-            return true
-        }
-
-        val currentFlavor = when {
-            approConfig.isBazaar() -> "BAZAR"
-            approConfig.isMyket() -> "MYKET"
-            approConfig.isGooglePlay() -> "GOOGLE_PLAY"
-            else -> return false
-        }
-
-        return currentFlavor in allowedFlavors
     }
 
     private fun resolveFirebaseLink(

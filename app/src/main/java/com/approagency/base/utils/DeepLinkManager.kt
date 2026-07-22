@@ -7,7 +7,9 @@ import androidx.core.net.toUri
 import com.approagency.base.config.ApproConfig
 import com.approagency.base.model.ui.deepLink.DeepLinkEvent
 import com.approagency.base.model.ui.deepLink.DeepLinkInput
+import com.approagency.base.model.ui.deepLink.DeepLinkNavigationType
 import com.approagency.base.model.ui.deepLink.DeepLinkParser
+import com.approagency.base.model.ui.deepLink.DeepLinkTarget
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -50,7 +52,9 @@ import java.util.concurrent.atomic.AtomicLong
  *
  * deepLinkManager.initialize(AppDeepLinkParser())
  */
-class DeepLinkManager {
+class DeepLinkManager(
+    private val config: ApproConfig
+) {
     private val eventId = AtomicLong(0)
 
     private var parser: DeepLinkParser? = null
@@ -88,16 +92,25 @@ class DeepLinkManager {
     }
 
     fun handle(input: DeepLinkInput): Boolean {
-        val target = parser?.parse(input)
-            ?: return false
+        if (config.isDeepLink(input.uri)) {
+            val target = parser?.parse(input)
+                ?: return false
 
-        return _events.tryEmit(
-            DeepLinkEvent(
-                id = eventId.incrementAndGet(),
-                input = input,
-                target = target
+            return _events.tryEmit(
+                DeepLinkEvent(
+                    id = eventId.incrementAndGet(),
+                    input = input,
+                    target = target
+                )
             )
-        )
+        } else {
+            return _events.tryEmit(
+                DeepLinkEvent(
+                    id = eventId.incrementAndGet(),
+                    input = input,
+                )
+            )
+        }
     }
 
     fun handle(intent: Intent?): Boolean {

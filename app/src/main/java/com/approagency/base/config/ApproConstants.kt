@@ -25,7 +25,7 @@ object ApproConstants {
     const val FIREBASE_URL_BAZAR = "url_bazar"
     const val FIREBASE_URL_MYKET = "url_myket"
     const val FIREBASE_URL_GOOGLE_PLAY = "url_google_play"
-    const val FIREBASE_FLAVORS = "flavors"
+    const val FIREBASE_FLAVOR = "flavor"
     const val FIREBASE_ID = "id"
 
     const val LINK = "link"

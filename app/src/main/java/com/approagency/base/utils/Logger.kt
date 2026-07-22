@@ -2,8 +2,11 @@ package com.approagency.base.utils
 
 import android.util.Log
 import com.approagency.base.config.ApproConfig
+import java.util.Locale
 
 object Logger {
+
+    private const val FALLBACK_TAG = "APPRO"
 
     @Volatile
     private var config: ApproConfig? = null
@@ -11,14 +14,24 @@ object Logger {
     val enabled: Boolean
         get() = config?.debug == true
 
+    @Volatile
+    private var defaultTag: String = FALLBACK_TAG
+
     fun initialize(
         config: ApproConfig
     ) {
         this.config = config
+
+        defaultTag = config.packageName
+            .substringAfterLast('.')
+            .trim()
+            .takeIf(String::isNotBlank)
+            ?.uppercase(Locale.ROOT)
+            ?: FALLBACK_TAG
     }
 
     fun verbose(
-        tag: String,
+        tag: String = defaultTag,
         message: String
     ) {
         if (enabled) {
@@ -27,7 +40,7 @@ object Logger {
     }
 
     fun debug(
-        tag: String,
+        tag: String = defaultTag,
         message: String
     ) {
         if (enabled) {
@@ -36,7 +49,7 @@ object Logger {
     }
 
     fun info(
-        tag: String,
+        tag: String = defaultTag,
         message: String
     ) {
         if (enabled) {
@@ -45,7 +58,7 @@ object Logger {
     }
 
     fun warning(
-        tag: String,
+        tag: String = defaultTag,
         message: String,
         throwable: Throwable? = null
     ) {
@@ -59,7 +72,7 @@ object Logger {
     }
 
     fun error(
-        tag: String,
+        tag: String = defaultTag,
         message: String,
         throwable: Throwable? = null
     ) {
