@@ -69,7 +69,7 @@ fun createLightColorScheme(
     val error = palettes.error
 
     return lightColorScheme(
-        primary = primary.tone(40),
+        primary = primaryColor,
         onPrimary = primary.tone(100),
         primaryContainer = primary.tone(90),
         onPrimaryContainer = primary.tone(10),
