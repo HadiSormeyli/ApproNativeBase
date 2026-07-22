@@ -45,7 +45,7 @@ object Appro {
                     localModule,
                     sessionModule,
                     uiModule,
-                    networkModule,
+                    networkModule(config.logInterceptorLevel),
                     paymentModule,
                 ) + appModules
             )
