@@ -309,7 +309,8 @@ fun Context.isAppForeground(): Boolean {
 }
 
 fun Intent.toDeepLinkInput(): DeepLinkInput? {
-    val link = getStringExtra(ApproConstants.LINK)
+    val link = dataString
+        ?: getStringExtra(ApproConstants.LINK)
         ?: return null
 
     return DeepLinkInput(
