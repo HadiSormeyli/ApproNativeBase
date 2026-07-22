@@ -200,7 +200,7 @@ Add them to `gradle/libs.versions.toml`:
 
 ```toml
 [versions]
-approNativeBase = "1.2.6" # Replace with the exact Git tag
+approNativeBase = "1.2.7" # Replace with the exact Git tag
 
 [libraries]
 appro-native-base-bazar = { module = "com.github.HadiSormeyli.ApproNativeBase:bazar", version.ref = "approNativeBase" }
