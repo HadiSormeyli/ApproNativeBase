@@ -63,10 +63,6 @@ class MarketPaymentService(
                     helper.awaitSetup()
                 }
 
-                if (!helper.subscriptionsSupported()) {
-                    throw Failure.PurchaseFailed
-                }
-
                 val purchase = withContext(Dispatchers.Main.immediate) {
                     helper.awaitPurchase(
                         activity = activity,
