@@ -34,6 +34,26 @@ class MarketPaymentService(
         request: PaymentRequest
     ): Flow<Resource<String>> {
         return networkCall {
+            val appInfo = activity.packageManager.getApplicationInfo(
+                activity.packageName,
+                android.content.pm.PackageManager.GET_META_DATA
+            )
+
+            val metaData = appInfo.metaData
+
+            Logger.info(
+                TAG,
+                buildString {
+                    append("MYKET RUNTIME CONFIG: ")
+                    append("package=${activity.packageName}, ")
+                    append("market_id=${metaData?.getString("market_id")}, ")
+                    append(
+                        "market_bind_address=" +
+                                "${metaData?.getString("market_bind_address")}"
+                    )
+                }
+            )
+
 
             Logger.info(
                 TAG,
@@ -243,7 +263,7 @@ class MarketPaymentService(
                         buildString {
                             append("STEP 9: Launching Myket purchase flow ")
                             append("sku=${request.productUuid}, ")
-                            append("type=${IabHelper.ITEM_TYPE_SUBS}")
+                            append("type=${IabHelper.ITEM_TYPE_INAPP}")
                         }
                     )
 
@@ -253,7 +273,7 @@ class MarketPaymentService(
                         helper.awaitPurchase(
                             activity = activity,
                             sku = request.productUuid,
-                            itemType = IabHelper.ITEM_TYPE_SUBS,
+                            itemType = IabHelper.ITEM_TYPE_INAPP,
                             payload = payload
                         )
                     }
