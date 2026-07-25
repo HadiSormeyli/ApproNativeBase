@@ -235,23 +235,6 @@ class MarketPaymentService(
                         "STEP 8: Checking subscriptionsSupported"
                     )
 
-                    val subscriptionsSupported =
-                        helper.subscriptionsSupported()
-
-                    Logger.info(
-                        TAG,
-                        "STEP 8: subscriptionsSupported=$subscriptionsSupported"
-                    )
-
-                    if (!subscriptionsSupported) {
-                        Logger.error(
-                            TAG,
-                            "FAILED STEP 8: Myket reports subscriptions are NOT supported"
-                        )
-
-                        throw Failure.PurchaseFailed
-                    }
-
                     /*
                      * STEP 9
                      */
@@ -270,7 +253,7 @@ class MarketPaymentService(
                         helper.awaitPurchase(
                             activity = activity,
                             sku = request.productUuid,
-                            itemType = IabHelper.ITEM_TYPE_SUBS,
+                            itemType = IabHelper.ITEM_TYPE_INAPP,
                             payload = payload
                         )
                     }

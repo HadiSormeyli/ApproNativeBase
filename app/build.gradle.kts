@@ -24,6 +24,8 @@ android {
     productFlavors {
         create("bazar") {
             dimension = "store"
+
+            manifestPlaceholders["store_name"] = "bazar"
         }
 
         create("myket") {
