@@ -28,6 +28,16 @@ android {
 
         create("myket") {
             dimension = "store"
+
+            val marketApplicationId = "ir.mservices.market"
+            val marketBindAddress = "ir.mservices.market.InAppBillingService.BIND"
+
+            manifestPlaceholders["marketApplicationId"] = marketApplicationId
+            manifestPlaceholders["marketBindAddress"] = marketBindAddress
+            manifestPlaceholders["marketPermission"] =
+                "${marketApplicationId}.BILLING"
+
+            manifestPlaceholders["store_name"] = "myket"
         }
 
         create("googlePlay") {
