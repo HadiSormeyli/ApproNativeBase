@@ -253,7 +253,7 @@ class MarketPaymentService(
                         helper.awaitPurchase(
                             activity = activity,
                             sku = request.productUuid,
-                            itemType = IabHelper.ITEM_TYPE_INAPP,
+                            itemType = IabHelper.ITEM_TYPE_SUBS,
                             payload = payload
                         )
                     }
@@ -286,25 +286,16 @@ class MarketPaymentService(
 
                     Logger.info(
                         TAG,
-                        "STEP 10: Developer payload match=$payloadMatches"
+                        buildString {
+                            append("STEP 10: Developer payload ${payloadMatches} ${purchase.developerPayload} ${payload}")
+                            append("expectedLength=${payload.length}, ")
+                            append(
+                                "actualLength=${
+                                    purchase.developerPayload?.length ?: 0
+                                }"
+                            )
+                        }
                     )
-
-                    if (!payloadMatches) {
-                        Logger.error(
-                            TAG,
-                            buildString {
-                                append("FAILED STEP 10: Developer payload mismatch ")
-                                append("expectedLength=${payload.length}, ")
-                                append(
-                                    "actualLength=${
-                                        purchase.developerPayload?.length ?: 0
-                                    }"
-                                )
-                            }
-                        )
-
-                        throw Failure.PurchaseFailed
-                    }
 
                     /*
                      * STEP 11
