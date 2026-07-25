@@ -14,6 +14,7 @@ import com.approagency.base.utils.Logger
 import com.approagency.base.utils.isPackageInstalled
 import ir.myket.billingclient.IabHelper
 import ir.myket.billingclient.util.IabResult
+import ir.myket.billingclient.util.Inventory
 import ir.myket.billingclient.util.Purchase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +29,7 @@ class MarketPaymentService(
     private val service: ApproPrivateService,
     private val marketPackageName: String = "ir.mservices.market"
 ) : PaymentService {
+
     override fun purchase(
         activity: ComponentActivity,
         request: PaymentRequest
@@ -44,13 +46,12 @@ class MarketPaymentService(
             val session = sessionDao.get(request.sessionId)
                 ?: throw Failure.Unauthorized
 
-            if (session.isPremium) throw Failure.HaveSubscription
+            if (session.isPremium) {
+                throw Failure.HaveSubscription
+            }
 
-            val approToken = session.approToken
-            val phoneNumber = session.phoneNumber
-            val versionCode = config.versionCode
-
-            val payload = request.payload ?: "$phoneNumber|$versionCode"
+            val payload = request.payload
+                ?: "${session.phoneNumber}|${config.versionCode}"
 
             val helper = withContext(Dispatchers.Main.immediate) {
                 IabHelper(activity, config.paymentRsaKey).apply {
@@ -63,6 +64,10 @@ class MarketPaymentService(
                     helper.awaitSetup()
                 }
 
+                withContext(Dispatchers.Main.immediate) {
+                    helper.consumeIfOwned(request.productUuid)
+                }
+
                 val purchase = withContext(Dispatchers.Main.immediate) {
                     helper.awaitPurchase(
                         activity = activity,
@@ -72,10 +77,15 @@ class MarketPaymentService(
                     )
                 }
 
-                Logger.debug("Myket", "payload ${payload} ${purchase.developerPayload}")
+                Logger.debug(
+                    "Myket",
+                    "payload $payload ${purchase.developerPayload}"
+                )
 
                 if (purchase.developerPayload != payload) {
-                    helper.awaitConsume(purchase)
+                    withContext(Dispatchers.Main.immediate) {
+                        helper.awaitConsume(purchase)
+                    }
 
                     throw Failure.PurchaseFailed
                 }
@@ -95,12 +105,15 @@ class MarketPaymentService(
                     )
                 )
 
-                if (response.isSuccessful) {
-                    helper.awaitConsume(purchase)
-                    "خرید با موفقیت انجام شد"
-                } else {
+                if (!response.isSuccessful) {
                     throw Failure.PurchaseFailed
                 }
+
+                withContext(Dispatchers.Main.immediate) {
+                    helper.awaitConsume(purchase)
+                }
+
+                "خرید با موفقیت انجام شد"
             } finally {
                 withContext(Dispatchers.Main.immediate) {
                     helper.dispose()
@@ -109,19 +122,52 @@ class MarketPaymentService(
         }
     }
 
+    private suspend fun IabHelper.consumeIfOwned(sku: String) {
+        try {
+            val inventory = awaitQueryInventory(listOf(sku))
+            val purchase = inventory.getPurchase(sku) ?: return
+            awaitConsume(purchase)
+        } catch (failure: Failure) {
+            throw failure
+        } catch (_: Exception) {
+            throw Failure.PurchaseFailed
+        }
+    }
+
+    private suspend fun IabHelper.awaitQueryInventory(
+        skus: List<String>
+    ): Inventory {
+        return suspendCancellableCoroutine { continuation ->
+            queryInventoryAsync(true, skus) { result, inventory ->
+                if (!continuation.isActive) {
+                    return@queryInventoryAsync
+                }
+
+                if (result.isSuccess && inventory != null) {
+                    continuation.resume(inventory)
+                } else {
+                    continuation.resumeWithException(
+                        Failure.PurchaseFailed
+                    )
+                }
+            }
+        }
+    }
 
     private suspend fun IabHelper.awaitConsume(
         purchase: Purchase
     ) {
-        suspendCancellableCoroutine<Unit> { continuation ->
+        suspendCancellableCoroutine { continuation ->
             consumeAsync(purchase) { _, result ->
+                if (!continuation.isActive) {
+                    return@consumeAsync
+                }
+
                 if (result.isSuccess) {
                     continuation.resume(Unit)
                 } else {
                     continuation.resumeWithException(
-                        IllegalStateException(
-                            result.message ?: "خطای مصرفِ خرید"
-                        )
+                        Failure.PurchaseFailed
                     )
                 }
             }
@@ -131,12 +177,16 @@ class MarketPaymentService(
     private suspend fun IabHelper.awaitSetup() {
         suspendCancellableCoroutine { continuation ->
             startSetup { result ->
-                if (!continuation.isActive) return@startSetup
+                if (!continuation.isActive) {
+                    return@startSetup
+                }
 
                 if (result.isSuccess) {
                     continuation.resume(Unit)
                 } else {
-                    continuation.resumeWithException(result.toFailure())
+                    continuation.resumeWithException(
+                        result.toFailure()
+                    )
                 }
             }
         }
@@ -154,15 +204,21 @@ class MarketPaymentService(
                 sku,
                 itemType,
                 { result, purchase ->
-                    if (!continuation.isActive) return@launchPurchaseFlow
+                    if (!continuation.isActive) {
+                        return@launchPurchaseFlow
+                    }
 
                     when {
                         result.isFailure -> {
-                            continuation.resumeWithException(result.toFailure())
+                            continuation.resumeWithException(
+                                result.toFailure()
+                            )
                         }
 
                         purchase == null -> {
-                            continuation.resumeWithException(Failure.PurchaseCancelled)
+                            continuation.resumeWithException(
+                                Failure.PurchaseCancelled
+                            )
                         }
 
                         else -> {
@@ -178,13 +234,21 @@ class MarketPaymentService(
     private fun IabResult.toFailure(): Failure {
         return when (response) {
             IabHelper.BILLING_RESPONSE_RESULT_USER_CANCELED,
-            IabHelper.IABHELPER_USER_CANCELLED -> Failure.PurchaseCancelled
+            IabHelper.IABHELPER_USER_CANCELLED -> {
+                Failure.PurchaseCancelled
+            }
 
-            IabHelper.BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE -> Failure.InstallMyketApplication
+            IabHelper.BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE -> {
+                Failure.InstallMyketApplication
+            }
 
-            IabHelper.BILLING_RESPONSE_RESULT_ITEM_UNAVAILABLE -> Failure.NotFound
+            IabHelper.BILLING_RESPONSE_RESULT_ITEM_UNAVAILABLE -> {
+                Failure.NotFound
+            }
 
-            else -> Failure.PurchaseFailed
+            else -> {
+                Failure.PurchaseFailed
+            }
         }
     }
 }
