@@ -10,7 +10,6 @@ import com.approagency.base.network.networkCall
 import com.approagency.base.network.service.ApproPrivateService
 import com.approagency.base.paymnet.PaymentRequest
 import com.approagency.base.paymnet.PaymentService
-import com.approagency.base.utils.Logger
 import com.approagency.base.utils.isPackageInstalled
 import ir.myket.billingclient.IabHelper
 import ir.myket.billingclient.util.IabResult
@@ -76,11 +75,6 @@ class MarketPaymentService(
                         payload = payload
                     )
                 }
-
-                Logger.debug(
-                    "Myket",
-                    "payload $payload ${purchase.developerPayload}"
-                )
 
                 if (purchase.developerPayload != payload) {
                     withContext(Dispatchers.Main.immediate) {

@@ -70,9 +70,9 @@ fun createLightColorScheme(
 
     return lightColorScheme(
         primary = primaryColor,
-        onPrimary = primary.tone(100),
-        primaryContainer = primary.tone(90),
-        onPrimaryContainer = primary.tone(10),
+        onPrimary = Color.Black,
+        primaryContainer = primaryColor,
+        onPrimaryContainer = Color.Black,
         inversePrimary = primary.tone(80),
 
         secondary = secondary.tone(40),
@@ -85,11 +85,11 @@ fun createLightColorScheme(
         tertiaryContainer = tertiary.tone(90),
         onTertiaryContainer = tertiary.tone(10),
 
-        background = neutral.tone(98),
-        onBackground = neutral.tone(10),
+        background = Color(0xFFF9F9F9),
+        onBackground = Color.Black,
 
-        surface = neutral.tone(98),
-        onSurface = neutral.tone(10),
+        surface = Color(0xFFFFFFFF),
+        onSurface = Color.Black,
 
         surfaceVariant = neutralVariant.tone(90),
         onSurfaceVariant = neutralVariant.tone(30),

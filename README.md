@@ -200,28 +200,49 @@ Add them to `gradle/libs.versions.toml`:
 
 ```toml
 [versions]
+kotlin = "2.3.0"
 approNativeBase = "1.3.0" # Replace with the exact Git tag
+ksp = "2.3.10" #for room
+roomCompilerVersion = "2.8.4"
 
 [libraries]
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompilerVersion" }
 appro-native-base-bazar = { module = "com.github.HadiSormeyli.ApproNativeBase:bazar", version.ref = "approNativeBase" }
-
 appro-native-base-myket = { module = "com.github.HadiSormeyli.ApproNativeBase:myket", version.ref = "approNativeBase" }
-
 appro-native-base-googleplay = { module = "com.github.HadiSormeyli.ApproNativeBase:googleplay", version.ref = "approNativeBase" }
+
+
+[plugins]
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ```
 ---
+
+In the root `build.gradle.kts`:
+```kotlin
+    plugins {
+        alias(libs.plugins.compose.compiler) apply false
+    }
+```
 
 ## 4. Configure store flavors
 
 The consuming app must use the same flavor dimension:
 
 ```kotlin
+plugins {
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.ksp)
+}
+
 android {
     flavorDimensions += "store"
 
     productFlavors {
         create("bazar") {
             dimension = "store"
+
+            manifestPlaceholders["store_name"] = "bazar"
 
             buildConfigField(
                 "String",
@@ -262,6 +283,8 @@ android {
         create("googlePlay") {
             dimension = "store"
 
+            manifestPlaceholders["store_name"] = "googlePlay"
+
             buildConfigField(
                 "String",
                 "FLAVOR_NAME",
@@ -274,6 +297,11 @@ android {
                 "\"\""
             )
         }
+    }
+
+    buildFeatures {
+        buildConfig = true
+        compose = true
     }
 
     buildTypes {
