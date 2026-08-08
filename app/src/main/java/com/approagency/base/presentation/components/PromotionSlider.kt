@@ -57,7 +57,7 @@ fun PromotionSliderState(
     loadingContent: (@Composable BoxScope.() -> Unit)? = {
         ShimmerContainer(
             modifier = Modifier
-                .padding(horizontal = 32.dp)
+                .padding(contentPadding)
                 .fillMaxWidth()
                 .height(250.dp)
                 .clip(MaterialTheme.shapes.medium)
