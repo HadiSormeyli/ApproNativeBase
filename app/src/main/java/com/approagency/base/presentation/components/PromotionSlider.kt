@@ -53,6 +53,7 @@ fun PromotionSliderState(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
     userScrollEnabled: Boolean = true,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 0.dp),
     loadingContent: (@Composable BoxScope.() -> Unit)? = {
         ShimmerContainer(
             modifier = Modifier
@@ -70,7 +71,9 @@ fun PromotionSliderState(
     emptyContent: (@Composable BoxScope.() -> Unit)? = null,
     sliderContent: @Composable (List<Promotion>) -> Unit = { promotions ->
         PromotionSlider(
-            items = promotions, userScrollEnabled = userScrollEnabled
+            items = promotions,
+            contentPadding = contentPadding,
+            userScrollEnabled = userScrollEnabled
         )
     }
 ) {
@@ -128,7 +131,7 @@ fun PromotionSlider(
     userScrollEnabled: Boolean = true,
     autoScrollEnabled: Boolean = true,
     autoScrollDelay: Long = 5_000L,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 32.dp),
+    contentPadding: PaddingValues = PaddingValues(horizontal = 0.dp),
     pageSpacing: Dp = (-16).dp,
     verticalSpacing: Dp = 8.dp,
     itemHeight: Dp = 200.dp,
@@ -166,7 +169,7 @@ fun PromotionSlider(
             Text(
                 text = promotion.title,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f)
             )
 
